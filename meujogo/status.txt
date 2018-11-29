@@ -1,0 +1,40 @@
+void printStatus(jogador pessoa){
+    switch (pessoa.vidas){
+    case 1:
+        al_draw_bitmap(hearta,10,10,0);
+        al_draw_bitmap(heartb,30,10,0);
+        al_draw_bitmap(heartb,50,10,0);
+        break;
+    case 2:
+        al_draw_bitmap(hearta,10,10,0);
+        al_draw_bitmap(hearta,30,10,0);
+        al_draw_bitmap(heartb,50,10,0);
+        break;
+    case 3:
+        al_draw_bitmap(hearta,10,10,0);
+        al_draw_bitmap(hearta,30,10,0);
+        al_draw_bitmap(hearta,50,10,0);
+        break;
+    }
+    switch(pessoa.key){
+    case 1:
+        al_draw_bitmap(key,20,30,0);
+        break;
+    case 2:
+        al_draw_bitmap(key,20,30,0);
+        al_draw_bitmap(key,20,50,0);
+        break;
+    case 3:
+        al_draw_bitmap(key,20,30,0);
+        al_draw_bitmap(key,20,50,0);
+        al_draw_bitmap(key,20,70,0);
+        break;
+    case 4:
+        al_draw_bitmap(key,20,30,0);
+        al_draw_bitmap(key,20,50,0);
+        al_draw_bitmap(key,20,70,0);
+        al_draw_bitmap(key,20,90,0);
+        break;
+    }
+
+}
