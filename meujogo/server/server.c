@@ -33,6 +33,7 @@ typedef struct{
     chave chaves[5];
     int acabou;
     int abriu;
+    int monstrowin;
 }jogador;
 void initPes(int num, jogador *pessoa){
     switch(num){
@@ -51,6 +52,7 @@ void initPes(int num, jogador *pessoa){
             pessoa->speed=10;
             pessoa->acabou=0;
             pessoa->abriu=0;
+            pessoa->monstrowin=0;
             break;
         case 1:
             pessoa->vivo=1;
@@ -67,6 +69,7 @@ void initPes(int num, jogador *pessoa){
             pessoa->speed=10;
             pessoa->acabou=0;
             pessoa->abriu=0;
+            pessoa->monstrowin=0;
             break;
         case 2:
             pessoa->vivo=1;
@@ -83,6 +86,7 @@ void initPes(int num, jogador *pessoa){
             pessoa->key=0;
             pessoa->acabou=0;
             pessoa->abriu=0;
+            pessoa->monstrowin=0;
             break;
         case 3:
             pessoa->vivo=1;
@@ -98,6 +102,7 @@ void initPes(int num, jogador *pessoa){
             pessoa->speed=10;
             pessoa->key=0;
             pessoa->acabou=0;
+            pessoa->monstrowin=0;
             pessoa->abriu=0;
             break;
         case 4://Monstro
@@ -114,6 +119,7 @@ void initPes(int num, jogador *pessoa){
             pessoa->speed=20;
             pessoa->acabou=0;
             pessoa->abriu=0;
+            pessoa->monstrowin=0;
             break;
     }
     return;
@@ -149,7 +155,7 @@ chave initChaves(int i){
 int tudovivo(jogador pessoa[5]){
     int i;
     for(i=0;i<mClientes;i++){
-        if(pessoa[i].vivo==1&&pessoa[i].id!=monstro){
+        if(pessoa[i].vivo==1&&pessoa[i].id!=monstro&&pessoa[i].vidas!=0){
             return 0;
         }
     }
@@ -219,9 +225,6 @@ int main(){
             sendMsgToClient(&id,sizeof(int),id);
             initPes(id, &pessoa[nClients-1]);
         }
-    }
-    for(c1=0;c1<5;c1++){
-        printf("Keys - %i %i %i %i\n",pessoa[0].chaves[c1].plano,pessoa[0].chaves[c1].x,pessoa[0].chaves[c1].y,pessoa[0].chaves[c1].vivo);
     }
     broadcast(pessoa,mClientes*sizeof(jogador));
     while(1){
@@ -362,7 +365,7 @@ int main(){
             }
             monstrowin=tudovivo(pessoa);
             if(monstrowin==1){
-                pessoa[novo.id].acabou=1;
+                pessoa[0].monstrowin=1;
             }
             broadcast(pessoa,mClientes*sizeof(jogador));
         }

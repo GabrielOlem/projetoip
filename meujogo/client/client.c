@@ -34,6 +34,7 @@ typedef struct{
     chave chaves[5];
     int acabou;
     int abriu;
+    int monstrowin;
 }jogador;
 /*
 lado 0 == frente
@@ -624,8 +625,8 @@ int main(void)
     }
     mapaClosedGate=al_load_bitmap("Mapa/mapa.jpg");
     mapaOpenGate=al_load_bitmap("Mapa/mapawin1.jpg");
-    Win=al_load_bitmap("Mapa/victory.png");
-    Defeat=al_load_bitmap("Mapa/defeat.png");
+    Win=al_load_bitmap("Mapa/victory.jpg");
+    Defeat=al_load_bitmap("Mapa/defeat.jpg");
     mapa=mapaClosedGate;
     hearta=al_load_bitmap("status/hearta.png");
     heartb=al_load_bitmap("status/heartb.png");
@@ -682,7 +683,6 @@ int main(void)
                     break;
             }
             sendMsgToServer(&pessoa[meuId],sizeof(jogador));
-            pessoa[meuId].tecla==NO_KEY_PRESSED;
         }
         if(redraw&&al_is_event_queue_empty(fila)){
             redraw=false;
@@ -705,14 +705,24 @@ int main(void)
             else{
                 mapa=mapaClosedGate;
             }
-            if(pessoa[meuId].acabou==1){
+            if(pessoa[meuId].vidas==0){
                 al_destroy_display(display);
                 end=al_create_display(width*3,height*3);
-                al_draw_bitmap(Win,0,0,0);
+                al_draw_bitmap(Defeat,0,0,0);
                 al_flip_display();
                 al_rest(3);
                 al_destroy_display(end);
                 exit(EXIT_SUCCESS);
+            }
+            if(pessoa[meuId].acabou==1){
+                    al_destroy_display(display);
+                    end=al_create_display(width*3,height*3);
+                    al_draw_bitmap(Win,0,0,0);
+                    al_flip_display();
+                    al_rest(3);
+                    al_destroy_display(end);
+                    exit(EXIT_SUCCESS);
+            
             }
             if(tjogo==0){
                 al_destroy_display(display);
@@ -730,14 +740,6 @@ int main(void)
                 exit(EXIT_SUCCESS);
             }
             printTela(pessoa[meuId].plano);
-        }
-        if(pessoa[meuId].vidas==0){
-            al_destroy_display(display);
-            end=al_create_display(width*3,height*3);
-            al_draw_bitmap(Defeat,0,0,0);
-            al_rest(3);
-            al_destroy_display(end);
-            exit(EXIT_SUCCESS);
         }
     }
     return 0;
