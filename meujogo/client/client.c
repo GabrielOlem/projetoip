@@ -88,39 +88,30 @@ void printTela(int plano){//Fun��o para printar a tela
     switch(plano){
         case 0:
             al_draw_bitmap(mapa,0,0,0);
-            al_set_window_position(display,0,0);
             break;
         case 1:
             al_draw_bitmap(mapa,-width,0,0);
-            al_set_window_position(display,width+65,0);
             break;
         case 2:
             al_draw_bitmap(mapa,-2*width,0,0);
-            al_set_window_position(display,2*width+65,0);
             break;
         case 3:
             al_draw_bitmap(mapa,0,-height,0);
-            al_set_window_position(display,0,height+30);
             break;
         case 4:
             al_draw_bitmap(mapa,-width,-height,0);
-            al_set_window_position(display,width+65,height+30);
             break;
         case 5:
             al_draw_bitmap(mapa,-2*width,-height,0);
-            al_set_window_position(display,2*width+65,height+30);
             break;
         case 6:
             al_draw_bitmap(mapa,0,-2*height,0);
-            al_set_window_position(display,65,2*height+30);
             break;
         case 7:
             al_draw_bitmap(mapa,-width,-2*height,0);
-            al_set_window_position(display,width+65,2*height+30);
             break;
         case 8:
             al_draw_bitmap(mapa,-2*width,-2*height,0);
-            al_set_window_position(display,2*width+65,2*height+30);
             break;
     }
 }
@@ -429,8 +420,8 @@ int main(void)
     }
     fonte=al_load_font("fonte/segment.otf",30,0);
     int aux=0;
-    defaultbg();
-    while (!start)
+    //defaultbg();
+    /*while (!start)
         {
             al_set_audio_stream_playmode(bg, ALLEGRO_PLAYMODE_LOOP);
             if (menuval == 0)
@@ -497,7 +488,7 @@ int main(void)
                         {
                             start = 1;  hover[0] = 0; al_play_sample(button, 1.0, 0.0,1.0,ALLEGRO_PLAYMODE_ONCE,NULL);
                             al_destroy_display(display);
-                            display = al_create_display(width, height);
+                            /*display = al_create_display(width, height);
                             al_start_timer(timer);
                             leConnection();
                             recvMsgFromServer(&meuId, WAIT_FOR_IT);
@@ -602,13 +593,14 @@ int main(void)
             }
             al_flip_display();
         }
-    /*leConnection();
+    */
+    leConnection();
     recvMsgFromServer(&meuId, WAIT_FOR_IT);
     printf("%i\n",meuId);
     retorno=recvMsgFromServer(pessoa,WAIT_FOR_IT);
     if(retorno==SERVER_DISCONNECTED){
         return -1;
-    }*/
+    }
     for(c1=0;c1<5;c1++){
         printf("Key - %i %i %i\n",pessoa[0].chaves[c1].plano,pessoa[0].chaves[c1].x,pessoa[0].chaves[c1].y);
     }
