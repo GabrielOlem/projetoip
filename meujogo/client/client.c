@@ -9,12 +9,14 @@
 #include <stdio.h>
 #include "client.h"
 #include <ctype.h>
+
 #define w 1200
 #define h 900
 #define width 400
 #define height 300
 #define tilesize 20
 #define monstro 0
+
 typedef struct{
     int x,y;
     int vivo;
@@ -34,7 +36,6 @@ typedef struct{
     chave chaves[5];
     int acabou;
     int abriu;
-    int monstrowin;
 }jogador;
 /*
 lado 0 == frente
@@ -46,7 +47,7 @@ enum KEYS{UP,DOWN,LEFT,RIGHT};
 const int fps=60;
 bool done=false;
 bool redraw=true;
-int tjogo=150; 
+int tjogo=300; 
 
 ALLEGRO_DISPLAY *menudisplay = NULL;
 ALLEGRO_DISPLAY *display=NULL;
@@ -61,17 +62,18 @@ ALLEGRO_BITMAP *nesquerda=NULL;
 ALLEGRO_BITMAP *mapa=NULL;
 ALLEGRO_BITMAP *mapaClosedGate=NULL;
 ALLEGRO_BITMAP *mapaOpenGate=NULL;
-ALLEGRO_BITMAP *Win=NULL;
-ALLEGRO_BITMAP *Defeat=NULL;
 ALLEGRO_BITMAP *hearta=NULL;
 ALLEGRO_BITMAP *heartb=NULL;
 ALLEGRO_BITMAP *key=NULL;
+ALLEGRO_BITMAP *Win=NULL;
+ALLEGRO_BITMAP *Defeat=NULL;
 ALLEGRO_TIMER *timer=NULL;
 ALLEGRO_FONT *fonte=NULL;
 ALLEGRO_AUDIO_STREAM *bg = NULL;
 ALLEGRO_SAMPLE *button = NULL;
 ALLEGRO_FONT *sans = NULL, *titlesans = NULL;
 ALLEGRO_TIMEOUT timeout;
+
 //Funcao para quando receber do server no inicio
 void printRec(jogador pessoa){
     switch(pessoa.lado){
@@ -117,7 +119,6 @@ void printTela(int plano){//Fun��o para printar a tela
             break;
         case 8:
             al_draw_bitmap(mapa,-2*width,-2*height,0);
-            break;
     }
 }
 void leSkin(int numero){
@@ -202,12 +203,9 @@ void printStatus(jogador pessoa){
     int seg;
     min=tjogo/60;
     seg=tjogo%60;
-    if(seg<10){
-        al_draw_textf(fonte,al_map_rgb(226,223,20),width/2,10,ALLEGRO_ALIGN_CENTRE,"%i 0%i",min,seg);
-    }else{
-        al_draw_textf(fonte,al_map_rgb(226,223,20),width/2,10,ALLEGRO_ALIGN_CENTRE,"%i %i",min,seg);
-    }
+    al_draw_textf(fonte,al_map_rgb(226,223,20),width/2,10,ALLEGRO_ALIGN_CENTRE,"%i %i",min,seg);
 }
+
 enum conn_ret_t tryConnect(){
     char server_ip[30];
     printf("Please enter the server IP: ");
@@ -247,7 +245,7 @@ void cal_import_bitmap (char *file, ALLEGRO_BITMAP **name)
       *name = al_load_bitmap("menu/error.png");
       if(!*name)
       {
-          al_destroy_display(display);
+          al_destroy_display(menudisplay);
           exit(1);
       }
     }
@@ -257,6 +255,13 @@ void defaultbg()
     al_clear_to_color(al_map_rgb(60, 60, 60));
     al_draw_bitmap_region (background, 0, 0, w, h, 0, 0, 0);
 }
+
+void defaultgamebg()
+{
+    al_clear_to_color(al_map_rgb(60, 60, 60));
+    al_draw_bitmap_region (background, 0, 0, width, height, 0, 0, 0);
+}
+
 int inicializar()
 {
     if (!al_init())
@@ -278,8 +283,9 @@ int inicializar()
     {
         exit(1);
     }
-    al_set_new_display_flags(ALLEGRO_NOFRAME);
+
     menudisplay = al_create_display(w,h);
+
     if (!menudisplay)
     {
         exit(1);
@@ -289,6 +295,7 @@ int inicializar()
     al_set_blender(ALLEGRO_ADD, ALLEGRO_ONE, ALLEGRO_INVERSE_ALPHA);
 
     al_init_font_addon();
+
     if (!al_init_ttf_addon())
     {
         al_destroy_display(menudisplay);
@@ -311,14 +318,26 @@ int inicializar()
         exit(1);
     }
 
+    fonte = al_load_font("Fonts/segment.otf",30,0);
+
+    if (!fonte)
+    {
+        al_destroy_display(menudisplay);
+        exit(1);
+    }
+
     cal_import_bitmap("menu/graybutton.png", &gbutton);
     cal_import_bitmap("menu/bluebutton.png", &bbutton);
     cal_import_bitmap("menu/waaaa.png", &wa);
     cal_import_bitmap("menu/spookybg.jpg", &background);
-    cal_import_bitmap ("Mapa/mapa.png", &mapa);
-    cal_import_bitmap ("status/hearta.png", &hearta);
-    cal_import_bitmap ("status/heartb.png", &heartb);
-    cal_import_bitmap ("status/key.png", &key);
+    cal_import_bitmap("Mapa/mapa.jpg", &mapa);
+    cal_import_bitmap("Mapa/mapa.jpg", &mapaClosedGate);
+    cal_import_bitmap("Mapa/mapawin1.jpg", &mapaOpenGate);
+    cal_import_bitmap("status/hearta.png", &hearta);
+    cal_import_bitmap("status/heartb.png", &heartb);
+    cal_import_bitmap("status/key.png", &key);
+    cal_import_bitmap("Mapa/victory.png", &Win);
+    cal_import_bitmap("Mapa/defeat.png", &Defeat);
 
     timer = al_create_timer(1.0/fps);
     if (!timer)
@@ -384,7 +403,8 @@ int main(void)
     int neox=0;
     int neoy=0;
     int c1,c2,c3;
-    int Plano;
+    int aux = 0;
+
     int colisoes[10][15][20];
     FILE **arq=NULL;
     char plano[20][20];
@@ -423,324 +443,322 @@ int main(void)
     int meuId;
     int retorno;
     jogador *pessoa=(jogador*)malloc(5*sizeof(jogador));
+
     if(!inicializar()){
         exit(EXIT_SUCCESS);
     }
-    int aux=0;
+
     defaultbg();
-    al_destroy_display(menudisplay);
-    /*while (!start)
-        {
-            al_set_audio_stream_playmode(bg, ALLEGRO_PLAYMODE_LOOP);
-            if (menuval == 0)
+    while (!done){
+        while (!start && !done)
             {
-                defaultbg();
-                al_draw_text(titlesans, al_map_rgb(65, 65, 65), 600, 154, ALLEGRO_ALIGN_CENTER, "DARK DWELLERS");
-                al_draw_text(titlesans, al_map_rgb(0, 0, 0), 600, 150, ALLEGRO_ALIGN_CENTER, "DARK DWELLERS");
-                if (hover[0] == 0)
-                    al_draw_bitmap_region(gbutton, 0, 0, 500, 60, 350, 330, 0);
-                else
-                    al_draw_bitmap_region(bbutton, 0, 0, 500, 60, 350, 330, 0);
-                if (hover[1] == 0)
-                    al_draw_bitmap_region(gbutton, 0, 0, 500, 60, 350, 450, 0);
-                else
-                    al_draw_bitmap_region(bbutton, 0, 0, 500, 60, 350, 450, 0);
-                if (hover[2] == 0)
-                    al_draw_bitmap_region(gbutton, 0, 0, 500, 60, 350, 570, 0);
-                else
-                    al_draw_bitmap_region(bbutton, 0, 0, 500, 60, 350, 570, 0);
-                if (hover[3] == 0)
-                    al_draw_bitmap_region(gbutton, 0, 0, 500, 60, 350, 690, 0);
-                else
-                    al_draw_bitmap_region(bbutton, 0, 0, 500, 60, 350, 690, 0);
-                if(!al_is_event_queue_empty(fila))
+                al_set_audio_stream_playmode(bg, ALLEGRO_PLAYMODE_LOOP);
+                if (menuval == 0)
                 {
-                    if (done != 1 || start != 1)
+                    defaultbg();
+                    al_draw_text(titlesans, al_map_rgb(65, 65, 65), 600, 154, ALLEGRO_ALIGN_CENTER, "DARK DWELLERS");
+                    al_draw_text(titlesans, al_map_rgb(0, 0, 0), 600, 150, ALLEGRO_ALIGN_CENTER, "DARK DWELLERS");
+                    if (hover[0] == 0)
+                        al_draw_bitmap_region(gbutton, 0, 0, 500, 60, 350, 330, 0);
+                    else
+                        al_draw_bitmap_region(bbutton, 0, 0, 500, 60, 350, 330, 0);
+                    if (hover[1] == 0)
+                        al_draw_bitmap_region(gbutton, 0, 0, 500, 60, 350, 450, 0);
+                    else
+                        al_draw_bitmap_region(bbutton, 0, 0, 500, 60, 350, 450, 0);
+                    if (hover[2] == 0)
+                        al_draw_bitmap_region(gbutton, 0, 0, 500, 60, 350, 570, 0);
+                    else
+                        al_draw_bitmap_region(bbutton, 0, 0, 500, 60, 350, 570, 0);
+                    if (hover[3] == 0)
+                        al_draw_bitmap_region(gbutton, 0, 0, 500, 60, 350, 690, 0);
+                    else
+                        al_draw_bitmap_region(bbutton, 0, 0, 500, 60, 350, 690, 0);
+                    if(!al_is_event_queue_empty(fila))
                     {
-                        al_wait_for_event(fila, &menu);
-                    }
-                    if (menu.type == ALLEGRO_EVENT_MOUSE_AXES)
-                    {
-                        if (menu.mouse.x >= 350 && menu.mouse.x <= 850 && menu.mouse.y > 330 && menu.mouse.y <= 390)
+                        if (done != 1 || start != 1)
                         {
-                            al_draw_bitmap_region(bbutton, 0, 0, 500, 60, 350, 330, 0);
-                            hover[0] = 1;
+                            al_wait_for_event(fila, &menu);
                         }
-                        else
-                            hover[0] = 0;
-                        if (menu.mouse.x >= 350 && menu.mouse.x <= 850 && menu.mouse.y > 450 && menu.mouse.y <= 510)
+                        if (menu.type == ALLEGRO_EVENT_MOUSE_AXES)
                         {
-                            al_draw_bitmap_region(bbutton, 0, 0, 500, 60, 350, 450, 0);
-                            hover[1] = 1;
+                            if (menu.mouse.x >= 350 && menu.mouse.x <= 850 && menu.mouse.y > 330 && menu.mouse.y <= 390)
+                            {
+                                al_draw_bitmap_region(bbutton, 0, 0, 500, 60, 350, 330, 0);
+                                hover[0] = 1;
+                            }
+                            else
+                                hover[0] = 0;
+                            if (menu.mouse.x >= 350 && menu.mouse.x <= 850 && menu.mouse.y > 450 && menu.mouse.y <= 510)
+                            {
+                                al_draw_bitmap_region(bbutton, 0, 0, 500, 60, 350, 450, 0);
+                                hover[1] = 1;
+                            }
+                            else
+                                hover[1] = 0;
+                            if (menu.mouse.x >= 350 && menu.mouse.x <= 850 && menu.mouse.y > 570 && menu.mouse.y <= 630)
+                            {
+                                al_draw_bitmap_region(bbutton, 0, 0, 500, 60, 350, 570, 0);
+                                hover[2] = 1;
+                            }
+                            else
+                                hover[2] = 0;
+                            if (menu.mouse.x >= 350 && menu.mouse.x <= 850 && menu.mouse.y > 690 && menu.mouse.y <= 750)
+                            {
+                                al_draw_bitmap_region(bbutton, 0, 0, 500, 60, 350, 690, 0);
+                                hover[3] = 1;
+                            }
+                            else
+                                hover[3] = 0;
                         }
-                        else
-                            hover[1] = 0;
-                        if (menu.mouse.x >= 350 && menu.mouse.x <= 850 && menu.mouse.y > 570 && menu.mouse.y <= 630)
+                        else if (menu.type == ALLEGRO_EVENT_MOUSE_BUTTON_DOWN)
                         {
-                            al_draw_bitmap_region(bbutton, 0, 0, 500, 60, 350, 570, 0);
-                            hover[2] = 1;
-                        }
-                        else
-                            hover[2] = 0;
-                        if (menu.mouse.x >= 350 && menu.mouse.x <= 850 && menu.mouse.y > 690 && menu.mouse.y <= 750)
-                        {
-                            al_draw_bitmap_region(bbutton, 0, 0, 500, 60, 350, 690, 0);
-                            hover[3] = 1;
-                        }
-                        else
-                            hover[3] = 0;
-                    }
-                    else if (menu.type == ALLEGRO_EVENT_MOUSE_BUTTON_DOWN)
-                    {
-                        if (hover[0] == 1)
-                        {
-                            start = 1;  hover[0] = 0; al_play_sample(button, 1.0, 0.0,1.0,ALLEGRO_PLAYMODE_ONCE,NULL);
-                            al_destroy_display(display);
-                            //display = al_create_display(width, height);
-                            al_start_timer(timer);
-                            leConnection();
-                            recvMsgFromServer(&meuId, WAIT_FOR_IT);
-                            printf("%i\n",meuId);
-                            retorno=recvMsgFromServer(pessoa,WAIT_FOR_IT);
-                            if(retorno==SERVER_DISCONNECTED){
-                                return -1;
+                            if (hover[0] == 1)
+                            {
+                                //GAME START
+                                start = 1;  hover[0] = 0; al_play_sample(button, 1.0, 0.0,1.0,ALLEGRO_PLAYMODE_ONCE,NULL);
+
+                                al_destroy_display(menudisplay);
+                                menudisplay = al_create_display(width, height);
+
+                                defaultgamebg();
+                                al_draw_text(sans, al_map_rgb(0, 0, 0), 200, 120, ALLEGRO_ALIGN_CENTER, "AWAITING IP...");
+                                al_flip_display();
+
+                                leConnection();
+                                recvMsgFromServer(&meuId, WAIT_FOR_IT);
+                                printf("%i\n", meuId);
+
+                                defaultgamebg();
+                                al_draw_text(sans, al_map_rgb(0, 0, 0), 200, 120, ALLEGRO_ALIGN_CENTER, "WAITING PLAYERS...");
+                                al_flip_display();
+
+                                retorno = recvMsgFromServer(pessoa, WAIT_FOR_IT);
+                                if(retorno == SERVER_DISCONNECTED){
+                                    return -1;
+                                }
+
+                                for(c1=0;c1<5;c1++){
+                                    printf("Key - %i %i %i\n",pessoa[0].chaves[c1].plano,pessoa[0].chaves[c1].x,pessoa[0].chaves[c1].y);
+                                }
+
+                                for(c1=0;c1<3;c1++){
+                                    printf("%i %i %i\n",pessoa[c1].id,pessoa[c1].x,pessoa[c1].y);
+                                }
+
+                                al_destroy_display(menudisplay);
+
+                                al_set_new_display_flags(ALLEGRO_NOFRAME);
+                                display = al_create_display(width,height);
+                                if(!display){
+                                    return -1;
+                                }
+
+                                printTela(pessoa[meuId].plano);
+                                leSkin(pessoa[meuId].id);
+                                printRec(pessoa[meuId]);
+                                al_start_timer(timer);
+                                al_flip_display();
+                            }
+                            if (hover[1] == 1)
+                            {
+                                menuval = 1; hover[1] = 0; hover[4] = 0; al_play_sample(button, 1.0, 0.0,1.0,ALLEGRO_PLAYMODE_ONCE,NULL);
+                            }
+                            if (hover[2] == 1)
+                            {
+                                menuval = 2; hover[2] = 0; hover[4] = 0; al_play_sample(button, 1.0, 0.0,1.0,ALLEGRO_PLAYMODE_ONCE,NULL);
+                            }
+                            if (hover[3] == 1)
+                            {
+                                done = 1;  hover[3] = 0; al_play_sample(button, 1.0, 0.0,1.0,ALLEGRO_PLAYMODE_ONCE,NULL);
                             }
                         }
-                        if (hover[1] == 1)
-                        {
-                            menuval = 1; hover[1] = 0; hover[4] = 0; al_play_sample(button, 1.0, 0.0,1.0,ALLEGRO_PLAYMODE_ONCE,NULL);
-                        }
-                        if (hover[2] == 1)
-                        {
-                            menuval = 2; hover[2] = 0; hover[4] = 0; al_play_sample(button, 1.0, 0.0,1.0,ALLEGRO_PLAYMODE_ONCE,NULL);
-                        }
-                        if (hover[3] == 1)
-                        {
-                            done = 1;  hover[3] = 0; al_play_sample(button, 1.0, 0.0,1.0,ALLEGRO_PLAYMODE_ONCE,NULL);
-                        }
+                        else if (menu.type == ALLEGRO_EVENT_DISPLAY_CLOSE)
+                            done = 1;
                     }
-                    else if (menu.type == ALLEGRO_EVENT_DISPLAY_CLOSE)
-                        done = 1;
+                    al_draw_text(sans, al_map_rgb(0, 0, 0), 600, 335, ALLEGRO_ALIGN_CENTER, "START");
+                    al_draw_text(sans, al_map_rgb(0, 0, 0), 600, 455, ALLEGRO_ALIGN_CENTER, "HOW TO PLAY");
+                    al_draw_text(sans, al_map_rgb(0, 0, 0), 600, 575, ALLEGRO_ALIGN_CENTER, "CREDITS");
+                    al_draw_text(sans, al_map_rgb(0, 0, 0), 600, 695, ALLEGRO_ALIGN_CENTER, "EXIT");
                 }
-                al_draw_text(sans, al_map_rgb(0, 0, 0), 600, 335, ALLEGRO_ALIGN_CENTER, "START");
-                al_draw_text(sans, al_map_rgb(0, 0, 0), 600, 455, ALLEGRO_ALIGN_CENTER, "HOW TO PLAY");
-                al_draw_text(sans, al_map_rgb(0, 0, 0), 600, 575, ALLEGRO_ALIGN_CENTER, "CREDITS");
-                al_draw_text(sans, al_map_rgb(0, 0, 0), 600, 695, ALLEGRO_ALIGN_CENTER, "EXIT");
-            }
-            else if (menuval == 1)
-            {
-                defaultbg();
-                al_draw_text(sans, al_map_rgb(0, 0, 0), 600, 120, ALLEGRO_ALIGN_CENTER, "YOU ARE GHOSTLY GHOST.");
-                al_draw_text(sans, al_map_rgb(0, 0, 0), 600, 180, ALLEGRO_ALIGN_CENTER, "RUN FROM BLACK GHOST MAN.");
-                al_draw_text(sans, al_map_rgb(0, 0, 0), 600, 240, ALLEGRO_ALIGN_CENTER, "DON'T DIE, THAT'S BAD FOR YOUR HEALTH.");
-                al_draw_text(sans, al_map_rgb(27, 22, 89), 600, 300, ALLEGRO_ALIGN_CENTER, "HAVE A COMPLIMENTARY WALUIGI. WAAA.");
-                al_draw_bitmap_region(wa, 0, 0, 240, 240, 480, 400, 0);
-                if (hover[4] == 0)
-                    al_draw_bitmap_region(gbutton, 0, 0, 500, 60, 350, 690, 0);
-                else
-                    al_draw_bitmap_region(bbutton, 0, 0, 500, 60, 350, 690, 0);
-                if(!al_is_event_queue_empty(fila))
+                else if (menuval == 1)
                 {
-                    if (done != 1 || start != 1)
-                        al_wait_for_event(fila, &menu);
-                    if (menu.type == ALLEGRO_EVENT_MOUSE_AXES)
+                    defaultbg();
+                    al_draw_text(sans, al_map_rgb(0, 0, 0), 600, 120, ALLEGRO_ALIGN_CENTER, "YOU ARE GHOSTLY GHOST.");
+                    al_draw_text(sans, al_map_rgb(0, 0, 0), 600, 180, ALLEGRO_ALIGN_CENTER, "RUN FROM BLACK GHOST MAN.");
+                    al_draw_text(sans, al_map_rgb(0, 0, 0), 600, 240, ALLEGRO_ALIGN_CENTER, "DON'T DIE, THAT'S BAD FOR YOUR HEALTH.");
+                    al_draw_text(sans, al_map_rgb(27, 22, 89), 600, 300, ALLEGRO_ALIGN_CENTER, "HAVE A COMPLIMENTARY WALUIGI. WAAA.");
+                    al_draw_bitmap_region(wa, 0, 0, 240, 240, 480, 400, 0);
+                    if (hover[4] == 0)
+                        al_draw_bitmap_region(gbutton, 0, 0, 500, 60, 350, 690, 0);
+                    else
+                        al_draw_bitmap_region(bbutton, 0, 0, 500, 60, 350, 690, 0);
+                    if(!al_is_event_queue_empty(fila))
                     {
-                        if (menu.mouse.x >= 350 && menu.mouse.x <= 850 && menu.mouse.y > 690 && menu.mouse.y <= 750)
+                        if (done != 1 || start != 1)
+                            al_wait_for_event(fila, &menu);
+                        if (menu.type == ALLEGRO_EVENT_MOUSE_AXES)
                         {
-                            al_draw_bitmap_region(bbutton, 0, 0, 500, 60, 350, 690, 0);
-                            hover[4] = 1;
+                            if (menu.mouse.x >= 350 && menu.mouse.x <= 850 && menu.mouse.y > 690 && menu.mouse.y <= 750)
+                            {
+                                al_draw_bitmap_region(bbutton, 0, 0, 500, 60, 350, 690, 0);
+                                hover[4] = 1;
+                            }
+                            else
+                                hover[4] = 0;
                         }
-                        else
-                            hover[4] = 0;
-                    }
-                    else if (menu.type == ALLEGRO_EVENT_MOUSE_BUTTON_DOWN)
-                    {
-                        if (hover[4] == 1)
-                    {
-                            menuval = 0; al_play_sample(button, 1.0, 0.0,1.0,ALLEGRO_PLAYMODE_ONCE,NULL);
-                }
-                    }
-                    else if (menu.type == ALLEGRO_EVENT_DISPLAY_CLOSE)
-                        done = 1;
-                }
-                al_draw_text(sans, al_map_rgb(0, 0, 0), 600, 695, ALLEGRO_ALIGN_CENTER, "BACK");
-            }
-            else if (menuval == 2)
-            {
-                defaultbg();
-                al_draw_text(sans, al_map_rgb(0, 0, 0), 600, 300, ALLEGRO_ALIGN_CENTER, "INSERT TEXT HERE");
-                if (hover[4] == 0)
-                    al_draw_bitmap_region(gbutton, 0, 0, 500, 60, 350, 690, 0);
-                else
-                    al_draw_bitmap_region(bbutton, 0, 0, 500, 60, 350, 690, 0);
-                if(!al_is_event_queue_empty(fila))
-                {
-                    if (done != 1 || start != 1)
-                        al_wait_for_event(fila, &menu);
-                    if (menu.type == ALLEGRO_EVENT_MOUSE_AXES)
-                    {
-                        if (menu.mouse.x >= 350 && menu.mouse.x <= 850 && menu.mouse.y > 690 && menu.mouse.y <= 750)
+                        else if (menu.type == ALLEGRO_EVENT_MOUSE_BUTTON_DOWN)
                         {
-                            al_draw_bitmap_region(bbutton, 0, 0, 500, 60, 350, 690, 0);
-                            hover[4] = 1;
+                            if (hover[4] == 1)
+                        {
+                                menuval = 0; al_play_sample(button, 1.0, 0.0,1.0,ALLEGRO_PLAYMODE_ONCE,NULL);
+                    }
                         }
-                        else
-                            hover[4] = 0;
+                        else if (menu.type == ALLEGRO_EVENT_DISPLAY_CLOSE)
+                            done = 1;
                     }
-                    else if (menu.type == ALLEGRO_EVENT_MOUSE_BUTTON_DOWN)
-                    {
-                        if (hover[4] == 1)
+                    al_draw_text(sans, al_map_rgb(0, 0, 0), 600, 695, ALLEGRO_ALIGN_CENTER, "BACK");
+                }
+                else if (menuval == 2)
                 {
-                            menuval = 0; al_play_sample(button, 1.0, 0.0,1.0,ALLEGRO_PLAYMODE_ONCE,NULL);
-                }
+                    defaultbg();
+                    al_draw_text(sans, al_map_rgb(0, 0, 0), 600, 300, ALLEGRO_ALIGN_CENTER, "INSERT TEXT HERE");
+                    if (hover[4] == 0)
+                        al_draw_bitmap_region(gbutton, 0, 0, 500, 60, 350, 690, 0);
+                    else
+                        al_draw_bitmap_region(bbutton, 0, 0, 500, 60, 350, 690, 0);
+                    if(!al_is_event_queue_empty(fila))
+                    {
+                        if (done != 1 || start != 1)
+                            al_wait_for_event(fila, &menu);
+                        if (menu.type == ALLEGRO_EVENT_MOUSE_AXES)
+                        {
+                            if (menu.mouse.x >= 350 && menu.mouse.x <= 850 && menu.mouse.y > 690 && menu.mouse.y <= 750)
+                            {
+                                al_draw_bitmap_region(bbutton, 0, 0, 500, 60, 350, 690, 0);
+                                hover[4] = 1;
+                            }
+                            else
+                                hover[4] = 0;
+                        }
+                        else if (menu.type == ALLEGRO_EVENT_MOUSE_BUTTON_DOWN)
+                        {
+                            if (hover[4] == 1)
+                        {
+                                menuval = 0; al_play_sample(button, 1.0, 0.0,1.0,ALLEGRO_PLAYMODE_ONCE,NULL);
+                        }
+                        }
+                        else if (menu.type == ALLEGRO_EVENT_DISPLAY_CLOSE)
+                            done = 1;
                     }
-                    else if (menu.type == ALLEGRO_EVENT_DISPLAY_CLOSE)
-                        done = 1;
+                    al_draw_text(sans, al_map_rgb(0, 0, 0), 600, 695, ALLEGRO_ALIGN_CENTER, "BACK");
                 }
-                al_draw_text(sans, al_map_rgb(0, 0, 0), 600, 695, ALLEGRO_ALIGN_CENTER, "BACK");
-            }
-            al_flip_display();
-        }
-    
-    
-    
-    */
-    leConnection();
-    recvMsgFromServer(&meuId, WAIT_FOR_IT);
-    printf("%i\n",meuId);
-    retorno=recvMsgFromServer(pessoa,WAIT_FOR_IT);
-    if(retorno==SERVER_DISCONNECTED){
-        return -1;
-    }
-    for(c1=0;c1<5;c1++){
-        printf("Key - %i %i %i\n",pessoa[0].chaves[c1].plano,pessoa[0].chaves[c1].x,pessoa[0].chaves[c1].y);
-    }
-    for(c1=0;c1<3;c1++){
-        printf("%i %i %i\n",pessoa[c1].id,pessoa[c1].x,pessoa[c1].y);
-    }
-    al_set_new_display_flags(ALLEGRO_NOFRAME);
-    display=al_create_display(width,height);
-    if(!display){
-        return -1;
-    }
-    mapaClosedGate=al_load_bitmap("Mapa/mapa.jpg");
-    mapaOpenGate=al_load_bitmap("Mapa/mapawin1.jpg");
-    Win=al_load_bitmap("Mapa/victory.jpg");
-    Defeat=al_load_bitmap("Mapa/defeat.jpg");
-    mapa=mapaClosedGate;
-    hearta=al_load_bitmap("status/hearta.png");
-    heartb=al_load_bitmap("status/heartb.png");
-    key=al_load_bitmap("status/key.png");
-    fonte=al_load_font("Fonts/segment.otf",30,0);
-    printTela(pessoa[meuId].plano);
-    leSkin(pessoa[meuId].id);
-    printRec(pessoa[meuId]);
-    al_install_keyboard();
-    fila=al_create_event_queue();
-    timer=al_create_timer(1.0/fps);
-    al_register_event_source(fila,al_get_keyboard_event_source());
-    al_register_event_source(fila,al_get_timer_event_source(timer));
-    al_start_timer(timer);
-    while(!done){
-        ALLEGRO_EVENT ev;
-        al_wait_for_event(fila,&ev);
-        if(ev.type==ALLEGRO_EVENT_TIMER){
-            aux++;
-            if(aux==fps){
-                tjogo--;
-                aux=0;
-            }
-            redraw=true;
-            retorno=recvMsgFromServer(pessoa,DONT_WAIT);
-            if(retorno==SERVER_DISCONNECTED){
-                return -1;
-            }
-        }
-        else if(ev.type==ALLEGRO_EVENT_KEY_DOWN){
-            switch(ev.keyboard.keycode){
-                case ALLEGRO_KEY_UP:
-                    pessoa[meuId].tecla='u';
-                    pessoa[meuId].lado=1;
-                    break;
-                case ALLEGRO_KEY_DOWN:
-                    pessoa[meuId].tecla='d';
-                    pessoa[meuId].lado=0;
-                    break;
-                case ALLEGRO_KEY_LEFT:
-                    pessoa[meuId].tecla='l';
-                    pessoa[meuId].lado=2;
-                    break;
-                case ALLEGRO_KEY_RIGHT:
-                    pessoa[meuId].tecla='r';
-                    pessoa[meuId].lado=3;
-                    break;
-                case ALLEGRO_KEY_ESCAPE:
-                    al_destroy_display(display);
-                    pessoa[meuId].vivo=0;
-                    done=true;
-                default:
-                    pessoa[meuId].tecla='8';
-                    break;
-            }
-            sendMsgToServer(&pessoa[meuId],sizeof(jogador));
-        }
-        if(redraw&&al_is_event_queue_empty(fila)){
-            redraw=false;
-            int i;
-            for(i=0;i<5;i++){
-                if(pessoa[meuId].plano==pessoa[i].plano&&pessoa[i].vivo==1){
-                    leSkin(pessoa[i].id);
-                    printRec(pessoa[i]);
-                }
-                if(pessoa[meuId].plano==pessoa[0].chaves[i].plano&&pessoa[0].chaves[i].vivo==1){
-                    al_draw_bitmap(key,pessoa[0].chaves[i].x,pessoa[0].chaves[i].y,0);
-                }
-            }
-            //se n�o estiver no meu plano eu n�o printo pq se n�o vai ficar todo mundo num plano s�
-            printStatus(pessoa[meuId]);
-            al_flip_display();
-            if(pessoa[0].abriu==1){
-                mapa = mapaOpenGate;
-            }
-            else{
-                mapa=mapaClosedGate;
-            }
-            if(pessoa[meuId].vidas==0){
-                al_destroy_display(display);
-                end=al_create_display(width*3,height*3);
-                al_draw_bitmap(Defeat,0,0,0);
                 al_flip_display();
-                al_rest(3);
-                al_destroy_display(end);
-                exit(EXIT_SUCCESS);
             }
-            if(pessoa[meuId].acabou==1){
+
+        while(start && !done){
+            ALLEGRO_EVENT ev;
+            al_wait_for_event(fila,&ev);
+            if(ev.type==ALLEGRO_EVENT_TIMER){
+                aux++;
+                if(aux==fps){
+                    tjogo--;
+                    aux=0;
+                }
+                redraw=true;
+                retorno=recvMsgFromServer(pessoa,DONT_WAIT);
+                if(retorno==SERVER_DISCONNECTED){
+                    return -1;
+                }
+            }
+            else if(ev.type==ALLEGRO_EVENT_KEY_DOWN){
+                switch(ev.keyboard.keycode){
+                    case ALLEGRO_KEY_UP:
+                        pessoa[meuId].tecla='u';
+                        pessoa[meuId].lado=1;
+                        break;
+                    case ALLEGRO_KEY_DOWN:
+                        pessoa[meuId].tecla='d';
+                        pessoa[meuId].lado=0;
+                        break;
+                    case ALLEGRO_KEY_LEFT:
+                        pessoa[meuId].tecla='l';
+                        pessoa[meuId].lado=2;
+                        break;
+                    case ALLEGRO_KEY_RIGHT:
+                        pessoa[meuId].tecla='r';
+                        pessoa[meuId].lado=3;
+                        break;
+                    case ALLEGRO_KEY_ESCAPE:
+                        al_destroy_display(display);
+                        pessoa[meuId].vivo=0;
+                        done=true;
+                    default:
+                        pessoa[meuId].tecla='8';
+                        break;
+                }
+                sendMsgToServer(&pessoa[meuId],sizeof(jogador));
+                pessoa[meuId].tecla==NO_KEY_PRESSED;
+            }
+            if(redraw && al_is_event_queue_empty(fila)){
+                redraw=false;
+                int i;
+                for(i=0;i<5;i++){
+                    if(pessoa[meuId].plano==pessoa[i].plano&&pessoa[i].vivo==1){
+                        leSkin(pessoa[i].id);
+                        printRec(pessoa[i]);
+                    }
+                    if(pessoa[meuId].plano==pessoa[0].chaves[i].plano&&pessoa[0].chaves[i].vivo==1){
+                        al_draw_bitmap(key,pessoa[0].chaves[i].x,pessoa[0].chaves[i].y,0);
+                    }
+                }
+                //se n�o estiver no meu plano eu n�o printo pq se n�o vai ficar todo mundo num plano s�
+                printStatus(pessoa[meuId]);
+                al_flip_display();
+                if(pessoa[0].abriu == 1){
+                    mapa = mapaOpenGate;
+                }
+                else{
+                    mapa = mapaClosedGate;
+                }
+                if(pessoa[meuId].vidas==0){
                     al_destroy_display(display);
-                    end=al_create_display(width*3,height*3);
-                    al_draw_bitmap(Win,0,0,0);
+                    end = al_create_display(width*3,height*3);
+                    al_draw_bitmap(Defeat,0,0,0);
                     al_flip_display();
                     al_rest(3);
                     al_destroy_display(end);
                     exit(EXIT_SUCCESS);
-            
-            }
-            if(tjogo==0){
-                al_destroy_display(display);
-                end=al_create_display(width*3,height*3);
-                if(pessoa[meuId].id==monstro){
-                    al_draw_bitmap(Win,0,0,0);
                 }
-                else{
-                    al_draw_bitmap(Defeat,0,0,0);
+                if(pessoa[meuId].acabou == 1){
+                    al_destroy_display(display);
+                    end = al_create_display(width*3,height*3);
+                    exit(EXIT_SUCCESS);
                 }
-                al_flip_display();
-                al_rest(3);
-                al_destroy_display(end);
-                done=true;
-                exit(EXIT_SUCCESS);
+                if(tjogo==0){
+                    al_destroy_display(display);
+                    end = al_create_display(width*3,height*3);
+                    if(pessoa[meuId].id == monstro){
+                        al_draw_bitmap(Win,0,0,0);
+                    }
+                    else{
+                        al_draw_bitmap(Defeat,0,0,0);
+                    }
+                    al_flip_display();
+                    al_rest(3);
+                    al_destroy_display(end);
+                    done=true;
+                    exit(EXIT_SUCCESS);
+                }
+                printTela(pessoa[meuId].plano);
             }
-            printTela(pessoa[meuId].plano);
         }
     }
+
+    al_destroy_display(menudisplay);
+    al_destroy_display(display);
+    al_destroy_audio_stream(bg);
+    al_destroy_sample(button);
+
     return 0;
 }
