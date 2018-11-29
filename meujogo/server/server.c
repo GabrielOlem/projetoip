@@ -154,7 +154,7 @@ chave initChaves(int i){
 }
 int tudovivo(jogador pessoa[5]){
     int i;
-    for(i=0;i<mClientes;i++){
+    for(i=0;i<5;i++){
         if(pessoa[i].vivo==1&&pessoa[i].id!=monstro&&pessoa[i].vidas!=0){
             return 0;
         }
@@ -353,7 +353,7 @@ int main(){
                     }
                 }
             }
-            if(chavesT==1){
+            if(chavesT==5){
                 pessoa[0].abriu=1;
             }
             else{

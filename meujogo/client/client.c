@@ -47,7 +47,7 @@ enum KEYS{UP,DOWN,LEFT,RIGHT};
 const int fps=60;
 bool done=false;
 bool redraw=true;
-int tjogo=300; 
+int tjogo=100; 
 
 ALLEGRO_DISPLAY *menudisplay = NULL;
 ALLEGRO_DISPLAY *display=NULL;
@@ -67,8 +67,11 @@ ALLEGRO_BITMAP *heartb=NULL;
 ALLEGRO_BITMAP *key=NULL;
 ALLEGRO_BITMAP *Win=NULL;
 ALLEGRO_BITMAP *Defeat=NULL;
+ALLEGRO_BITMAP *mao=NULL;
 ALLEGRO_TIMER *timer=NULL;
 ALLEGRO_FONT *fonte=NULL;
+ALLEGRO_FONT *fontemenor=NULL;
+ALLEGRO_FONT *sansmenor=NULL;
 ALLEGRO_AUDIO_STREAM *bg = NULL;
 ALLEGRO_SAMPLE *button = NULL;
 ALLEGRO_FONT *sans = NULL, *titlesans = NULL;
@@ -175,79 +178,39 @@ void printStatus(jogador pessoa){
     }
     switch(pessoa.key){
     case 1:
+        al_draw_text(fontemenor,al_map_rgb(255,255,255),45,32,0,"1");
         al_draw_bitmap(key,20,30,0);
         break;
     case 2:
+        al_draw_text(fontemenor,al_map_rgb(255,255,255),45,32,0,"2");
         al_draw_bitmap(key,20,30,0);
-        al_draw_bitmap(key,20,50,0);
         break;
     case 3:
+        al_draw_text(fontemenor,al_map_rgb(255,255,255),45,32,0,"3");
         al_draw_bitmap(key,20,30,0);
-        al_draw_bitmap(key,20,50,0);
-        al_draw_bitmap(key,20,70,0);
         break;
     case 4:
+        al_draw_text(fontemenor,al_map_rgb(255,255,255),45,32,0,"4");
         al_draw_bitmap(key,20,30,0);
-        al_draw_bitmap(key,20,50,0);
-        al_draw_bitmap(key,20,70,0);
-        al_draw_bitmap(key,20,90,0);
         break;
     case 5:
+        al_draw_text(fontemenor,al_map_rgb(255,255,255),45,32,0,"5");
         al_draw_bitmap(key,20,30,0);
-        al_draw_bitmap(key,20,50,0);
-        al_draw_bitmap(key,20,70,0);
-        al_draw_bitmap(key,20,90,0);
-        al_draw_bitmap(key,20,110,0);
+        break;
+    default:
+        al_draw_text(fontemenor,al_map_rgb(255,255,255),45,32,0,"0");
+        al_draw_bitmap(key,20,30,0);
+        break;
     }
     int min;
     int seg;
     min=tjogo/60;
     seg=tjogo%60;
-    al_draw_textf(fonte,al_map_rgb(226,223,20),width/2,10,ALLEGRO_ALIGN_CENTRE,"%i %i",min,seg);
-}
-
-enum conn_ret_t tryConnect(){
-    char server_ip[30];
-    printf("Please enter the server IP: ");
-    scanf(" %s",server_ip);
-    getchar();
-    return connectToServer(server_ip);
-}
-void leConnection(){
-    enum conn_ret_t ans=tryConnect();
-    while (ans!=SERVER_UP){
-        if(ans==SERVER_DOWN){
-            puts("O server caiu!");
-        }
-        else if(ans==SERVER_FULL){
-            puts("O server esta cheio!");
-        }
-        else if(ans==SERVER_CLOSED){
-            puts("O server esta fechado para novas conexoes");
-        }
-        printf("Gostaria de tentar novamente? [S/n]");
-        int res;
-        while(res=tolower(getchar()),res!='n'&&res!='s'&&res!='\n'){
-            puts("Que?");
-        }
-        if(res=='n'){
-            exit(EXIT_SUCCESS);
-        }
-        ans=tryConnect();
+    if(seg<10){
+        al_draw_textf(fonte,al_map_rgb(226,223,20),width/2,10,ALLEGRO_ALIGN_CENTRE,"%i 0%i",min,seg);
     }
-}
-void cal_import_bitmap (char *file, ALLEGRO_BITMAP **name)
-{
-   *name = al_load_bitmap(file);
-
-   if(!*name)
-    {
-      *name = al_load_bitmap("menu/error.png");
-      if(!*name)
-      {
-          al_destroy_display(menudisplay);
-          exit(1);
-      }
+    else{
+        al_draw_textf(fonte,al_map_rgb(226,223,20),width/2,10,ALLEGRO_ALIGN_CENTRE,"%i %i",min,seg);
     }
 }
 void defaultbg()
@@ -261,6 +224,157 @@ void defaultgamebg()
     al_clear_to_color(al_map_rgb(60, 60, 60));
     al_draw_bitmap_region (background, 0, 0, width, height, 0, 0, 0);
 }
+enum conn_ret_t tryConnect(bool *done){
+    int i = 0;
+    int enter = 0;
+    char server_ip[20]={ };
+    printf("Please enter the server IP: ");
+    while (1)
+    {
+        if(!al_is_event_queue_empty(fila)){
+            if (*done != 1)
+                al_wait_for_event(fila, &menu);
+            if(menu.type==ALLEGRO_EVENT_KEY_DOWN){
+                        switch(menu.keyboard.keycode){
+                            case ALLEGRO_KEY_0:
+                                server_ip[i] = '0';
+                                i++;
+                                break;
+                            case ALLEGRO_KEY_1:
+                                server_ip[i] = '1';
+                                i++;
+                                break;
+                            case ALLEGRO_KEY_2:
+                                server_ip[i] = '2';
+                                i++;
+                                break;
+                            case ALLEGRO_KEY_3:
+                                server_ip[i] = '3';
+                                i++;
+                                break;
+                            case ALLEGRO_KEY_4:
+                                server_ip[i] = '4';
+                                i++;
+                                break;
+                            case ALLEGRO_KEY_5:
+                                server_ip[i] = '5';
+                                i++;
+                                break;
+                            case ALLEGRO_KEY_6:
+                                server_ip[i] = '6';
+                                i++;
+                                break;
+                            case ALLEGRO_KEY_7:
+                                server_ip[i] = '7';
+                                i++;
+                                break;
+                            case ALLEGRO_KEY_8:
+                                server_ip[i] = '8';
+                                i++;
+                                break;
+                            case ALLEGRO_KEY_9:
+                                server_ip[i] = '9';
+                                i++;
+                                break;
+                            case ALLEGRO_KEY_FULLSTOP:
+                                server_ip[i] = '.';
+                                i++;
+                                break;
+                            case ALLEGRO_KEY_ESCAPE:
+                                al_destroy_display(menudisplay);
+                                al_destroy_audio_stream(bg);
+                                al_destroy_sample(button);
+                                *done = true;
+                                return 0;
+                            case ALLEGRO_KEY_DELETE:
+                                if(i>0){
+                                    i--;
+                                }
+                                server_ip[i] = ' ';
+                                break;
+                            case ALLEGRO_KEY_ENTER:
+                                return connectToServer(server_ip);
+                            default: 
+                                break;
+                        }
+                }
+        }
+        else
+        {
+            defaultgamebg();
+            al_draw_textf(sans, al_map_rgb(0, 0, 0), 200, 120, ALLEGRO_ALIGN_CENTER,"IP: %s",server_ip);
+            al_flip_display();
+        }
+    }
+}
+void leConnection(bool *done){
+    enum conn_ret_t ans=tryConnect(done);
+    while (ans!=SERVER_UP){
+        if(ans==SERVER_DOWN){
+            defaultgamebg();
+            al_draw_text(sansmenor, al_map_rgb(0, 0, 0), 200, 120, ALLEGRO_ALIGN_CENTER, "Server Down!");
+            al_flip_display();
+            puts("O server caiu!");
+        }
+        else if(ans==SERVER_FULL){
+            defaultgamebg();
+            al_draw_text(sansmenor, al_map_rgb(0, 0, 0), 200, 120, ALLEGRO_ALIGN_CENTER, "Server is Full!");
+            al_flip_display();
+            puts("O server esta cheio!");
+        }
+        else if(ans==SERVER_CLOSED){
+            defaultgamebg();
+            al_draw_text(sansmenor, al_map_rgb(0, 0, 0), 200, 120, ALLEGRO_ALIGN_CENTER, "Server is not available!");
+            al_flip_display();
+            puts("O server esta fechado para novas conexoes");
+        }
+        al_rest(2);
+        defaultgamebg();
+        al_draw_text(sansmenor, al_map_rgb(0, 0, 0), 200, 120, ALLEGRO_ALIGN_CENTER, "Would you like to try again?(y/n):");
+        al_flip_display();
+        int res;
+        do{
+            al_wait_for_event(fila,&menu);
+            if(menu.type==ALLEGRO_EVENT_KEY_DOWN){
+                switch(menu.keyboard.keycode){
+                    case ALLEGRO_KEY_Y:
+                        res='y';
+                        break;
+                    case ALLEGRO_KEY_N:
+                        res='n';
+                        break;
+                    default:
+                        res='g';
+                        break;
+                }
+            }
+        }while(res!='n'&&res!='y');
+        if(res=='n'){
+            al_destroy_display(menudisplay);
+            exit(EXIT_SUCCESS);
+        }
+        res='g';
+        ans=tryConnect(done);
+    }
+}
+void cal_import_bitmap (char *file, ALLEGRO_BITMAP **name)
+{
+   *name = al_load_bitmap(file);
+
+   if(!*name)
+    {
+      *name = al_load_bitmap("menu/error.png");
+      if(!*name)
+      {
+          al_destroy_display(menudisplay);
+          al_destroy_display(display);
+          al_destroy_display(end);
+          printf("\n\nIMAGE ERROR!\n\n");
+          exit(1);
+      }
+    }
+}
+
 
 int inicializar()
 {
@@ -283,7 +397,9 @@ int inicializar()
     {
         exit(1);
     }
-
+    if(!al_init_primitives_addon()){
+        exit(1);
+    }
     menudisplay = al_create_display(w,h);
 
     if (!menudisplay)
@@ -303,6 +419,7 @@ int inicializar()
     }
 
     sans = al_load_font("Fonts/PixelOperator-Bold.ttf", 48, 0);
+    sansmenor=al_load_font("Fonts/PixelOperator-Bold.ttf",24,0);
 
     if (!sans)
     {
@@ -319,7 +436,7 @@ int inicializar()
     }
 
     fonte = al_load_font("Fonts/segment.otf",30,0);
-
+    fontemenor = al_load_font("Fonts/segment.otf",20,0);
     if (!fonte)
     {
         al_destroy_display(menudisplay);
@@ -331,13 +448,14 @@ int inicializar()
     cal_import_bitmap("menu/waaaa.png", &wa);
     cal_import_bitmap("menu/spookybg.jpg", &background);
     cal_import_bitmap("Mapa/mapa.jpg", &mapa);
-    cal_import_bitmap("Mapa/mapa.jpg", &mapaClosedGate);
     cal_import_bitmap("Mapa/mapawin1.jpg", &mapaOpenGate);
+    cal_import_bitmap("Mapa/mapa.jpg", &mapaClosedGate);
     cal_import_bitmap("status/hearta.png", &hearta);
     cal_import_bitmap("status/heartb.png", &heartb);
     cal_import_bitmap("status/key.png", &key);
     cal_import_bitmap("Mapa/victory.png", &Win);
     cal_import_bitmap("Mapa/defeat.png", &Defeat);
+    cal_import_bitmap("status/mao.png",&mao);
 
     timer = al_create_timer(1.0/fps);
     if (!timer)
@@ -355,7 +473,8 @@ int inicializar()
 
     al_register_event_source(fila, al_get_mouse_event_source());
     al_register_event_source(fila, al_get_keyboard_event_source());
-    al_register_event_source(fila, al_get_display_event_source(menudisplay));
+    al_register_event_source
+    (fila, al_get_display_event_source(menudisplay));
     al_register_event_source(fila, al_get_timer_event_source(timer));
 
     if(!al_install_audio())
@@ -406,8 +525,8 @@ int main(void)
     int aux = 0;
 
     int colisoes[10][15][20];
-    FILE **arq=NULL;
-    char plano[20][20];
+    FILE **arq = NULL;
+    char plano[15][20];
     //Matriz
     arq=(FILE**)malloc(10*(sizeof(FILE *)));
     arq[0]=fopen("matrizes/plano1.txt","rt");
@@ -447,7 +566,6 @@ int main(void)
     if(!inicializar()){
         exit(EXIT_SUCCESS);
     }
-
     defaultbg();
     while (!done){
         while (!start && !done)
@@ -525,7 +643,7 @@ int main(void)
                                 al_draw_text(sans, al_map_rgb(0, 0, 0), 200, 120, ALLEGRO_ALIGN_CENTER, "AWAITING IP...");
                                 al_flip_display();
 
-                                leConnection();
+                                leConnection(&done);
                                 recvMsgFromServer(&meuId, WAIT_FOR_IT);
                                 printf("%i\n", meuId);
 
@@ -563,6 +681,7 @@ int main(void)
                             if (hover[1] == 1)
                             {
                                 menuval = 1; hover[1] = 0; hover[4] = 0; al_play_sample(button, 1.0, 0.0,1.0,ALLEGRO_PLAYMODE_ONCE,NULL);
+                                al_destroy_audio_stream(bg);
                             }
                             if (hover[2] == 1)
                             {
@@ -691,14 +810,13 @@ int main(void)
                         break;
                     case ALLEGRO_KEY_ESCAPE:
                         al_destroy_display(display);
+                        al_destroy_audio_stream(bg);
+                        al_destroy_sample(button);
                         pessoa[meuId].vivo=0;
-                        done=true;
-                    default:
-                        pessoa[meuId].tecla='8';
-                        break;
+                        done = true;
+                        exit(EXIT_SUCCESS);
                 }
                 sendMsgToServer(&pessoa[meuId],sizeof(jogador));
-                pessoa[meuId].tecla==NO_KEY_PRESSED;
             }
             if(redraw && al_is_event_queue_empty(fila)){
                 redraw=false;
@@ -721,44 +839,39 @@ int main(void)
                 else{
                     mapa = mapaClosedGate;
                 }
-                if(pessoa[meuId].vidas==0){
+                printTela(pessoa[meuId].plano);
+            }
+            if(pessoa[meuId].vidas == 0){
                     al_destroy_display(display);
                     end = al_create_display(width*3,height*3);
                     al_draw_bitmap(Defeat,0,0,0);
                     al_flip_display();
                     al_rest(3);
                     al_destroy_display(end);
-                    exit(EXIT_SUCCESS);
-                }
-                if(pessoa[meuId].acabou == 1){
-                    al_destroy_display(display);
-                    end = al_create_display(width*3,height*3);
-                    exit(EXIT_SUCCESS);
-                }
-                if(tjogo==0){
-                    al_destroy_display(display);
-                    end = al_create_display(width*3,height*3);
-                    if(pessoa[meuId].id == monstro){
-                        al_draw_bitmap(Win,0,0,0);
-                    }
-                    else{
-                        al_draw_bitmap(Defeat,0,0,0);
-                    }
-                    al_flip_display();
-                    al_rest(3);
-                    al_destroy_display(end);
                     done=true;
                     exit(EXIT_SUCCESS);
                 }
-                printTela(pessoa[meuId].plano);
+            if(tjogo==0){
+                al_destroy_display(display);
+                end = al_create_display(width*3,height*3);
+                if(pessoa[meuId].id == monstro){
+                    al_draw_bitmap(Win,0,0,0);
+                }
+                else{
+                    al_draw_bitmap(Defeat,0,0,0);
+                }
+                al_flip_display();
+                al_rest(3);
+                al_destroy_display(end);
+                done=true;
+                exit(EXIT_SUCCESS);
             }
         }
     }
-
     al_destroy_display(menudisplay);
     al_destroy_display(display);
+    al_destroy_display(end);
     al_destroy_audio_stream(bg);
     al_destroy_sample(button);
-
     return 0;
 }
