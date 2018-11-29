@@ -5,8 +5,8 @@
 #include <time.h>
 #define width 400
 #define height 300
-#define tilesize 15
-#define mClientes 1
+#define tilesize 20
+#define mClientes 2
 #define monstro 1
 int leCollision(int x,int y,int ex,int ey,int lado){//Funcao de coliso
     if(x+lado<ex||x>ex+lado||y+lado<ey||y>ey+lado){
@@ -167,7 +167,7 @@ int main(){
     jogador *pessoa=(jogador*)malloc(5*sizeof(jogador));
     jogador novo;
     FILE **arq=NULL;
-    char plano[20][20];
+    char plano[15][20];
     //Matriz
     arq=(FILE**)malloc(10*(sizeof(FILE *)));
     arq[0]=fopen("matrizes/plano1.txt","rt");
@@ -235,7 +235,6 @@ int main(){
             else{
                 Plano=pessoa[novo.id].plano;
             }
-            printf("tecla %c\n",pessoa[novo.id].tecla);
             if(pessoa[novo.id].tecla=='u'){
                 neoy=(pessoa[novo.id].y-10)/tilesize;
                 neox=(pessoa[novo.id].x+10)/tilesize;
@@ -307,17 +306,18 @@ int main(){
                             pessoa[0].chaves[j].vivo=1;
                         } 
                     }
+                    chavesT-=pessoa[novo.id].key;
                     pessoa[novo.id].key=0;
-                    chavesT=0;
                     if(pessoa[novo.id].vidas==0){
                             pessoa[novo.id].vivo=0;
                     }
                 }
                 for(c1=0;c1<5;c1++){
-                    if(leCollision(pessoa[novo.id].x,pessoa[novo.id].y,pessoa[0].chaves[c1].x,pessoa[0].chaves[c1].y,tilesize)==1&&pessoa[0].chaves[c1].plano==pessoa[novo.id].plano&&pessoa[0].chaves[c1].vivo==1){
+                    if(pessoa[0].chaves[c1].vivo==1&&leCollision(pessoa[novo.id].x,pessoa[novo.id].y,pessoa[0].chaves[c1].x,pessoa[0].chaves[c1].y,tilesize)==1&&pessoa[0].chaves[c1].plano==pessoa[novo.id].plano){
+                        pessoa[0].chaves[c1].vivo=0;
                         pessoa[novo.id].key++;
                         chavesT++;
-                        pessoa[0].chaves[c1].vivo=0;
+                        printf("%i\n",chavesT);
                     }
                 }
             }
@@ -342,15 +342,15 @@ int main(){
                                 pessoa[0].chaves[j].vivo=1;
                             } 
                         }
+                        chavesT-=pessoa[novo.id].key;
                         pessoa[i].key=0;
-                        chavesT=0;
                         if(pessoa[i].vidas==0){
                             pessoa[i].vivo=0;
                         }
                     }
                 }
             }
-            if(chavesT==5){
+            if(chavesT==1){
                 pessoa[0].abriu=1;
             }
             else{

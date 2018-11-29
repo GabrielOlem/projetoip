@@ -14,6 +14,7 @@
 #define width 400
 #define height 300
 #define tilesize 20
+#define monstro 0
 typedef struct{
     int x,y;
     int vivo;
@@ -44,10 +45,11 @@ enum KEYS{UP,DOWN,LEFT,RIGHT};
 const int fps=60;
 bool done=false;
 bool redraw=true;
-int tjogo=300; 
+int tjogo=150; 
 
 ALLEGRO_DISPLAY *menudisplay = NULL;
 ALLEGRO_DISPLAY *display=NULL;
+ALLEGRO_DISPLAY *end=NULL;
 ALLEGRO_EVENT menu, menuhtp;
 ALLEGRO_EVENT_QUEUE *fila=NULL;
 ALLEGRO_BITMAP *gbutton = NULL, *bbutton = NULL, *wa = NULL, *background = NULL;
@@ -58,6 +60,8 @@ ALLEGRO_BITMAP *nesquerda=NULL;
 ALLEGRO_BITMAP *mapa=NULL;
 ALLEGRO_BITMAP *mapaClosedGate=NULL;
 ALLEGRO_BITMAP *mapaOpenGate=NULL;
+ALLEGRO_BITMAP *Win=NULL;
+ALLEGRO_BITMAP *Defeat=NULL;
 ALLEGRO_BITMAP *hearta=NULL;
 ALLEGRO_BITMAP *heartb=NULL;
 ALLEGRO_BITMAP *key=NULL;
@@ -197,7 +201,11 @@ void printStatus(jogador pessoa){
     int seg;
     min=tjogo/60;
     seg=tjogo%60;
-    al_draw_textf(fonte,al_map_rgb(226,223,20),width/2,10,ALLEGRO_ALIGN_CENTRE,"%i %i",min,seg);
+    if(seg<10){
+        al_draw_textf(fonte,al_map_rgb(226,223,20),width/2,10,ALLEGRO_ALIGN_CENTRE,"%i 0%i",min,seg);
+    }else{
+        al_draw_textf(fonte,al_map_rgb(226,223,20),width/2,10,ALLEGRO_ALIGN_CENTRE,"%i %i",min,seg);
+    }
 }
 enum conn_ret_t tryConnect(){
     char server_ip[30];
@@ -417,9 +425,9 @@ int main(void)
     if(!inicializar()){
         exit(EXIT_SUCCESS);
     }
-    fonte=al_load_font("fonte/segment.otf",30,0);
     int aux=0;
     defaultbg();
+    al_destroy_display(menudisplay);
     /*while (!start)
         {
             al_set_audio_stream_playmode(bg, ALLEGRO_PLAYMODE_LOOP);
@@ -616,6 +624,8 @@ int main(void)
     }
     mapaClosedGate=al_load_bitmap("Mapa/mapa.jpg");
     mapaOpenGate=al_load_bitmap("Mapa/mapawin1.jpg");
+    Win=al_load_bitmap("Mapa/victory.png");
+    Defeat=al_load_bitmap("Mapa/defeat.png");
     mapa=mapaClosedGate;
     hearta=al_load_bitmap("status/hearta.png");
     heartb=al_load_bitmap("status/heartb.png");
@@ -640,8 +650,6 @@ int main(void)
                 aux=0;
             }
             redraw=true;
-            //Vai receber do servidor aqui
-            //Logo depois verifico se � o meu personagem, se for mudamos o meuPlano
             retorno=recvMsgFromServer(pessoa,DONT_WAIT);
             if(retorno==SERVER_DISCONNECTED){
                 return -1;
@@ -666,14 +674,15 @@ int main(void)
                     pessoa[meuId].lado=3;
                     break;
                 case ALLEGRO_KEY_ESCAPE:
+                    al_destroy_display(display);
                     pessoa[meuId].vivo=0;
-                    pessoa[meuId].tecla='8';
                     done=true;
                 default:
                     pessoa[meuId].tecla='8';
                     break;
             }
             sendMsgToServer(&pessoa[meuId],sizeof(jogador));
+            pessoa[meuId].tecla==NO_KEY_PRESSED;
         }
         if(redraw&&al_is_event_queue_empty(fila)){
             redraw=false;
@@ -697,20 +706,37 @@ int main(void)
                 mapa=mapaClosedGate;
             }
             if(pessoa[meuId].acabou==1){
+                al_destroy_display(display);
+                end=al_create_display(width*3,height*3);
+                al_draw_bitmap(Win,0,0,0);
+                al_flip_display();
+                al_rest(3);
+                al_destroy_display(end);
                 exit(EXIT_SUCCESS);
             }
             if(tjogo==0){
-                /*if(pessoa[meuId].id==4){
-                    //Ganhou;
+                al_destroy_display(display);
+                end=al_create_display(width*3,height*3);
+                if(pessoa[meuId].id==monstro){
+                    al_draw_bitmap(Win,0,0,0);
                 }
                 else{
-                    //perdeu;
-                }*/
+                    al_draw_bitmap(Defeat,0,0,0);
+                }
+                al_flip_display();
+                al_rest(3);
+                al_destroy_display(end);
+                done=true;
                 exit(EXIT_SUCCESS);
             }
             printTela(pessoa[meuId].plano);
         }
         if(pessoa[meuId].vidas==0){
+            al_destroy_display(display);
+            end=al_create_display(width*3,height*3);
+            al_draw_bitmap(Defeat,0,0,0);
+            al_rest(3);
+            al_destroy_display(end);
             exit(EXIT_SUCCESS);
         }
     }
