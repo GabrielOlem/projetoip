@@ -270,20 +270,19 @@ int inicializar()
         exit(1);
     }
     al_set_new_display_flags(ALLEGRO_NOFRAME);
-    display = al_create_display(w,h);
-    if (!display)
+    menudisplay = al_create_display(w,h);
+    if (!menudisplay)
     {
         exit(1);
     }
 
-    al_set_window_title(display, "Teste");
-
+    al_set_window_title(menudisplay, "Teste");
     al_set_blender(ALLEGRO_ADD, ALLEGRO_ONE, ALLEGRO_INVERSE_ALPHA);
 
     al_init_font_addon();
     if (!al_init_ttf_addon())
     {
-        al_destroy_display(display);
+        al_destroy_display(menudisplay);
         exit(1);
     }
 
@@ -291,7 +290,7 @@ int inicializar()
 
     if (!sans)
     {
-        al_destroy_display(display);
+        al_destroy_display(menudisplay);
         exit(1);
     }
 
@@ -299,7 +298,7 @@ int inicializar()
 
     if (!titlesans)
     {
-        al_destroy_display(display);
+        al_destroy_display(menudisplay);
         exit(1);
     }
 
@@ -315,44 +314,44 @@ int inicializar()
     timer = al_create_timer(1.0/fps);
     if (!timer)
     {
-        al_destroy_display(display);
+        al_destroy_display(menudisplay);
         exit(1);
     }
 
     fila = al_create_event_queue();
     if (!fila)
     {
-        al_destroy_display(display);
+        al_destroy_display(menudisplay);
         exit(1);
     }
 
     al_register_event_source(fila, al_get_mouse_event_source());
     al_register_event_source(fila, al_get_keyboard_event_source());
-    al_register_event_source(fila, al_get_display_event_source(display));
+    al_register_event_source(fila, al_get_display_event_source(menudisplay));
     al_register_event_source(fila, al_get_timer_event_source(timer));
 
     if(!al_install_audio())
     {
-        al_destroy_display(display);
+        al_destroy_display(menudisplay);
         exit(1);
     }
 
     if(!al_init_acodec_addon())
     {
-        al_destroy_display(display);
+        al_destroy_display(menudisplay);
         exit(1);
     }
 
     if (!al_reserve_samples(1))
     {
-        al_destroy_display(display);
+        al_destroy_display(menudisplay);
         exit(1);
     }
 
     bg = al_load_audio_stream("Sounds/bgsong.wav", 4, 1024);
     if (!bg)
     {
-        al_destroy_display(display);
+        al_destroy_display(menudisplay);
         exit(1);
     }
 
@@ -361,7 +360,7 @@ int inicializar()
     button = al_load_sample("Sounds/button.wav");
     if (!button)
     {
-        al_destroy_display(display);
+        al_destroy_display(menudisplay);
         exit(1);
     }
 
@@ -420,7 +419,7 @@ int main(void)
     }
     fonte=al_load_font("fonte/segment.otf",30,0);
     int aux=0;
-    //defaultbg();
+    defaultbg();
     /*while (!start)
         {
             al_set_audio_stream_playmode(bg, ALLEGRO_PLAYMODE_LOOP);
@@ -488,7 +487,7 @@ int main(void)
                         {
                             start = 1;  hover[0] = 0; al_play_sample(button, 1.0, 0.0,1.0,ALLEGRO_PLAYMODE_ONCE,NULL);
                             al_destroy_display(display);
-                            /*display = al_create_display(width, height);
+                            //display = al_create_display(width, height);
                             al_start_timer(timer);
                             leConnection();
                             recvMsgFromServer(&meuId, WAIT_FOR_IT);
@@ -593,6 +592,9 @@ int main(void)
             }
             al_flip_display();
         }
+    
+    
+    
     */
     leConnection();
     recvMsgFromServer(&meuId, WAIT_FOR_IT);

@@ -6,7 +6,7 @@
 #define width 400
 #define height 300
 #define tilesize 15
-#define mClientes 3
+#define mClientes 1
 #define monstro 1
 int leCollision(int x,int y,int ex,int ey,int lado){//Funcao de coliso
     if(x+lado<ex||x>ex+lado||y+lado<ey||y>ey+lado){
@@ -235,6 +235,7 @@ int main(){
             else{
                 Plano=pessoa[novo.id].plano;
             }
+            printf("tecla %c\n",pessoa[novo.id].tecla);
             if(pessoa[novo.id].tecla=='u'){
                 neoy=(pessoa[novo.id].y-10)/tilesize;
                 neox=(pessoa[novo.id].x+10)/tilesize;
