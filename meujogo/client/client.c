@@ -602,13 +602,13 @@ int main(void)
             }
             al_flip_display();
         }
-    leConnection();
+    /*leConnection();
     recvMsgFromServer(&meuId, WAIT_FOR_IT);
     printf("%i\n",meuId);
     retorno=recvMsgFromServer(pessoa,WAIT_FOR_IT);
     if(retorno==SERVER_DISCONNECTED){
         return -1;
-    }
+    }*/
     for(c1=0;c1<5;c1++){
         printf("Key - %i %i %i\n",pessoa[0].chaves[c1].plano,pessoa[0].chaves[c1].x,pessoa[0].chaves[c1].y);
     }
@@ -626,7 +626,7 @@ int main(void)
     hearta=al_load_bitmap("status/hearta.png");
     heartb=al_load_bitmap("status/heartb.png");
     key=al_load_bitmap("status/key.png");
-    fonte=al_load_font("fonte/segment.otf",30,0);
+    fonte=al_load_font("Fonts/segment.otf",30,0);
     printTela(pessoa[meuId].plano);
     leSkin(pessoa[meuId].id);
     printRec(pessoa[meuId]);

@@ -6,7 +6,7 @@
 #define width 400
 #define height 300
 #define tilesize 20
-#define mClientes 3
+#define mClientes 2
 #define monstro 1
 int leCollision(int x,int y,int ex,int ey,int lado){//Funcao de coliso
     if(x+lado<ex||x>ex+lado||y+lado<ey||y>ey+lado){
