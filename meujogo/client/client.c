@@ -14,7 +14,7 @@
 #define h 900
 #define width 400
 #define height 300
-#define monstro 0
+#define monstro 4
 
 typedef struct{
     int x,y;
@@ -77,7 +77,15 @@ ALLEGRO_SAMPLE *button = NULL;
 ALLEGRO_SAMPLE *svictory = NULL, *sdefeat = NULL, *sdead = NULL, *skill = NULL;
 ALLEGRO_FONT *sans = NULL, *titlesans = NULL, *mediumsans = NULL, *sansmenor = NULL;;
 ALLEGRO_TIMEOUT timeout;
-
+void cal_destroy_audio()
+{
+    al_destroy_sample(svictory);
+    al_destroy_sample(sdefeat);
+    al_destroy_sample(sdead);
+    al_destroy_sample(skill);
+    al_destroy_sample(button);
+    al_destroy_audio_stream(bg);
+}
 void cal_import_bitmap (char *file, ALLEGRO_BITMAP **name)
 {
    *name = al_load_bitmap(file);
@@ -97,15 +105,7 @@ void cal_import_bitmap (char *file, ALLEGRO_BITMAP **name)
     }
 }
 
-void cal_destroy_audio()
-{
-    al_destroy_sample(svictory);
-    al_destroy_sample(sdefeat);
-    al_destroy_sample(sdead);
-    al_destroy_sample(skill);
-    al_destroy_sample(button);
-    al_destroy_audio_stream(bg);
-}
+
 
 void cal_mass_destroy()
 {
@@ -131,7 +131,7 @@ void cal_mass_destroy()
     cal_destroy_audio();
 }
 
-cal_init_event_queues()
+void cal_init_event_queues()
 {
     filamenu = al_create_event_queue();
     if (!filamenu)
@@ -234,7 +234,7 @@ void leSkin(int numero){
             break;
     }
 }
-void printstatusm(jogador pessoa[5]){
+void printStatusm(jogador pessoa[5]){
     int c1,c2=1,c3=1,c4=1,c5=1;
     for(c1=0;c1<5;c1++){
         if(pessoa[0].vidas==0){
@@ -264,10 +264,19 @@ void printstatusm(jogador pessoa[5]){
             }
         } 
     }
+    int min;
+    int seg;
+    min=tjogo/60;
+    seg=tjogo%60;
+    if(seg<10){
+        al_draw_textf(fonte,al_map_rgb(226,223,20),width/2,10,ALLEGRO_ALIGN_CENTRE,"%i 0%i",min,seg);
+    }
+    else{
+        al_draw_textf(fonte,al_map_rgb(226,223,20),width/2,10,ALLEGRO_ALIGN_CENTRE,"%i %i",min,seg);
+    }
 }
 void printStatus(jogador pessoa){
-    if(pessoa.id!=monstro){
-        switch (pessoa.vidas){
+    switch (pessoa.vidas){
         case 1:
             al_draw_bitmap(hearta,10,10,0);
             al_draw_bitmap(heartb,30,10,0);
@@ -283,8 +292,8 @@ void printStatus(jogador pessoa){
             al_draw_bitmap(hearta,30,10,0);
             al_draw_bitmap(hearta,50,10,0);
             break;
-        }
-        switch(pessoa.key){
+    }
+    switch(pessoa.key){
         case 1:
             al_draw_text(fontemenor,al_map_rgb(255,255,255),45,32,0,"1");
             al_draw_bitmap(key,20,30,0);
@@ -309,7 +318,6 @@ void printStatus(jogador pessoa){
             al_draw_text(fontemenor,al_map_rgb(255,255,255),45,32,0,"0");
             al_draw_bitmap(key,20,30,0);
             break;
-        }
     }
     int min;
     int seg;
@@ -716,6 +724,7 @@ int main(void)
     int neoy=0;
     int c1,c2,c3;
     int aux = 0;
+    int temp=0;
     int repeat = 0;
 
     int colisoes[10][15][20];
@@ -965,8 +974,10 @@ int main(void)
                     al_draw_text(titlesans, al_map_rgb(0, 0, 0), 600, 120, ALLEGRO_ALIGN_CENTER, "EQUIPE:");
                     al_draw_text(sans, al_map_rgb(0, 0, 0), 600, 250, ALLEGRO_ALIGN_CENTER, "GABRIEL 'SONIKKU' FERREIRA ROCHA");
                     al_draw_text(sans, al_map_rgb(0, 0, 0), 600, 310, ALLEGRO_ALIGN_CENTER, "LUCAS 'L' DOS REIS");
-                    al_draw_text(sans, al_map_rgb(0, 0, 0), 600, 370, ALLEGRO_ALIGN_CENTER, "GABRIEL MELO");
+                    al_draw_text(sans, al_map_rgb(0, 0, 0), 600, 370, ALLEGRO_ALIGN_CENTER, "GABRIEL 'GME' MELO");
                     al_draw_text(sans, al_map_rgb(0, 0, 0), 600, 430, ALLEGRO_ALIGN_CENTER, "ZECA");
+                    al_draw_text(sans, al_map_rgb(0, 0, 0), 600, 490, ALLEGRO_ALIGN_CENTER, "FELIPE NUNES");
+                    al_draw_text(sans, al_map_rgb(0, 0, 0), 600, 550, ALLEGRO_ALIGN_CENTER, "MARCELO VALOIS");
                     if (hover[4] == 0)
                         al_draw_bitmap_region(gbutton, 0, 0, 500, 60, 350, 690, 0);
                     else
@@ -1000,6 +1011,7 @@ int main(void)
                 al_flip_display();
             }
         al_destroy_event_queue(filamenu);
+        int teste=0;
         while(start && !done){
             ALLEGRO_EVENT ev;
             al_wait_for_event(fila, &ev);
@@ -1016,24 +1028,23 @@ int main(void)
                     exit(1);
                 }
                 if(pessoa[meuId].vidas == 0){
-                    al_destroy_display(display);
                     end = al_create_display(width*3,height*3);
                     al_toggle_display_flag(end, ALLEGRO_NOFRAME, true);
                     al_draw_bitmap(Defeat,0,0,0);
                     al_flip_display();
                     al_play_sample(sdefeat, 1.0, 0.0,1.0,ALLEGRO_PLAYMODE_ONCE,NULL);
+                    al_destroy_event_queue(fila);
+                    al_destroy_display(display);
                     al_rest(2);
                     al_destroy_display(end);
                     menudisplay = al_create_display(w, h);
                     al_toggle_display_flag(menudisplay, ALLEGRO_NOFRAME, false);
                     al_set_window_title(menudisplay, "Dark Dwellers");
                     start = 0;
-                    al_destroy_event_queue(fila);
                     cal_init_event_queues();
                     goto menustart; 
                 }
                 if(tjogo==0){
-                    al_destroy_display(display);
                     end = al_create_display(width*3, height*3);
                     al_toggle_display_flag(end, ALLEGRO_NOFRAME, true);
                     if(pessoa[meuId].id == monstro){
@@ -1046,35 +1057,35 @@ int main(void)
                         al_flip_display();
                         al_play_sample(sdefeat, 1.0, 0.0,1.0,ALLEGRO_PLAYMODE_ONCE,NULL);
                     }
+                    al_destroy_event_queue(fila);
+                    al_destroy_display(display);
                     al_rest(2);
                     al_destroy_display(end);
                     menudisplay = al_create_display(w, h);
                     al_toggle_display_flag(menudisplay, ALLEGRO_NOFRAME, false);
                     al_set_window_title(menudisplay, "Dark Dwellers");
                     start = 0;
-                    al_destroy_event_queue(fila);
                     cal_init_event_queues();
                     goto menustart;
                 }
                 if(pessoa[meuId].acabou==1){
-                    al_destroy_display(display);
                     end = al_create_display(width*3, height*3);
                     al_toggle_display_flag(end, ALLEGRO_NOFRAME, true);
                     al_draw_bitmap(Win,0,0,0);
                     al_flip_display();
                     al_play_sample(svictory, 1.0, 0.0,1.0,ALLEGRO_PLAYMODE_ONCE,NULL);
+                    al_destroy_event_queue(fila);
+                    al_destroy_display(display);
                     al_rest(2);
                     al_destroy_display(end);
                     menudisplay = al_create_display(w, h);
                     al_toggle_display_flag(menudisplay, ALLEGRO_NOFRAME, false);
                     al_set_window_title(menudisplay, "Dark Dwellers");
                     start = 0;
-                    al_destroy_event_queue(fila);
                     cal_init_event_queues();
                     goto menustart;
                 }
                 if(pessoa[0].monstroloose==1){
-                    al_destroy_display(display);
                     end = al_create_display(width*3,height*3);
                     al_toggle_display_flag(end, ALLEGRO_NOFRAME, true);
                     if(pessoa[meuId].id!=monstro){
@@ -1087,18 +1098,18 @@ int main(void)
                         al_flip_display();
                         al_play_sample(sdefeat,1,0,1,ALLEGRO_PLAYMODE_ONCE,NULL);
                     }
-                    al_rest(1);
+                    al_destroy_event_queue(fila);
+                    al_destroy_display(display);
+                    al_rest(2);
                     al_destroy_display(end);
                     menudisplay = al_create_display(w, h);
                     al_toggle_display_flag(menudisplay, ALLEGRO_NOFRAME, false);
                     al_set_window_title(menudisplay, "Dark Dwellers");
                     start=0;
-                    al_destroy_event_queue(fila);
                     cal_init_event_queues();
                     goto menustart;
                 }
                 if(pessoa[0].monstrowin==1){
-                    al_destroy_display(display);
                     end = al_create_display(width*3,height*3);
                     al_toggle_display_flag(end, ALLEGRO_NOFRAME, true);
                     if(pessoa[meuId].id==monstro){
@@ -1111,13 +1122,14 @@ int main(void)
                         al_flip_display();
                         al_play_sample(sdefeat,1,0,1,ALLEGRO_PLAYMODE_ONCE,NULL);
                     }
-                    al_rest(1);
+                    al_destroy_event_queue(fila);
+                    al_destroy_display(display);
+                    al_rest(2);
                     al_destroy_display(end);
                     menudisplay = al_create_display(w, h);
                     al_toggle_display_flag(menudisplay, ALLEGRO_NOFRAME, false);
                     al_set_window_title(menudisplay, "Dark Dwellers");
-                    start=0;
-                    al_destroy_event_queue(fila);
+                    start=0; 
                     cal_init_event_queues();
                     goto menustart;
                 }
@@ -1179,15 +1191,27 @@ int main(void)
                         al_play_sample(skill, 1.0, 0.0,1.0,ALLEGRO_PLAYMODE_ONCE,NULL);
                     }
                 }
-                printStatus(pessoa[meuId]);
-                printstatusm(pessoa);
-                al_flip_display();
+                if(pessoa[meuId].id==monstro){
+                    printStatusm(pessoa);
+                }
+                else{
+                    printStatus(pessoa[meuId]);
+                }
                 if(pessoa[0].abriu == 1){
+                    if(temp==0){
+                        teste=tjogo;
+                    }
+                    temp=1;
                     mapa = mapaOpenGate;
                 }
                 else{
+                    temp=0;
                     mapa = mapaClosedGate;
                 }
+                if(temp==1&&(teste-tjogo)<1){
+                    al_draw_text(sans,al_map_rgb(226,223,20),width/2,50,ALLEGRO_ALIGN_CENTRE,"PORTAO ABERTO");
+                }
+                al_flip_display();
                 printTela(pessoa[meuId].plano);
             }
         }
