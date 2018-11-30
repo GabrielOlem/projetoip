@@ -14,8 +14,7 @@
 #define h 900
 #define width 400
 #define height 300
-#define tilesize 20
-#define monstro 1
+#define monstro 0
 
 typedef struct{
     int x,y;
@@ -37,6 +36,7 @@ typedef struct{
     int acabou;
     int abriu;
     int monstrowin;
+    int monstroloose;
 }jogador;
 /*
 lado 0 == frente
@@ -234,49 +234,82 @@ void leSkin(int numero){
             break;
     }
 }
-void printStatus(jogador pessoa){
-    switch (pessoa.vidas){
-    case 1:
-        al_draw_bitmap(hearta,10,10,0);
-        al_draw_bitmap(heartb,30,10,0);
-        al_draw_bitmap(heartb,50,10,0);
-        break;
-    case 2:
-        al_draw_bitmap(hearta,10,10,0);
-        al_draw_bitmap(hearta,30,10,0);
-        al_draw_bitmap(heartb,50,10,0);
-        break;
-    case 3:
-        al_draw_bitmap(hearta,10,10,0);
-        al_draw_bitmap(hearta,30,10,0);
-        al_draw_bitmap(hearta,50,10,0);
-        break;
+void printstatusm(jogador pessoa[5]){
+    int c1,c2=1,c3=1,c4=1,c5=1;
+    for(c1=0;c1<5;c1++){
+        if(pessoa[0].vidas==0){
+            c2=0;
+        }
+        if(pessoa[1].vidas==0){
+            c3=0;
+        }
+        if(pessoa[2].vidas==0){
+            c4=0;
+        }
+        if(pessoa[3].vidas==0){
+            c5=0;
+        }
+        if(pessoa[c1].id==monstro){
+            if(c2!=0){
+                al_draw_line(17,15,22,15,al_map_rgb(0,184,230),10);
+            }
+            if(c3!=0){
+                al_draw_line(24,15,29,15,al_map_rgb(153,153,255),10);
+            }
+            if(c4!=0){
+                al_draw_line(31,15,36,15,al_map_rgb(255,102,204),10);
+            }
+            if(c5!=0){
+                al_draw_line(38,15,43,15,al_map_rgb(102,255,102),10);
+            }
+        } 
     }
-    switch(pessoa.key){
-    case 1:
-        al_draw_text(fontemenor,al_map_rgb(255,255,255),45,32,0,"1");
-        al_draw_bitmap(key,20,30,0);
-        break;
-    case 2:
-        al_draw_text(fontemenor,al_map_rgb(255,255,255),45,32,0,"2");
-        al_draw_bitmap(key,20,30,0);
-        break;
-    case 3:
-        al_draw_text(fontemenor,al_map_rgb(255,255,255),45,32,0,"3");
-        al_draw_bitmap(key,20,30,0);
-        break;
-    case 4:
-        al_draw_text(fontemenor,al_map_rgb(255,255,255),45,32,0,"4");
-        al_draw_bitmap(key,20,30,0);
-        break;
-    case 5:
-        al_draw_text(fontemenor,al_map_rgb(255,255,255),45,32,0,"5");
-        al_draw_bitmap(key,20,30,0);
-        break;
-    default:
-        al_draw_text(fontemenor,al_map_rgb(255,255,255),45,32,0,"0");
-        al_draw_bitmap(key,20,30,0);
-        break;
+}
+void printStatus(jogador pessoa){
+    if(pessoa.id!=monstro){
+        switch (pessoa.vidas){
+        case 1:
+            al_draw_bitmap(hearta,10,10,0);
+            al_draw_bitmap(heartb,30,10,0);
+            al_draw_bitmap(heartb,50,10,0);
+            break;
+        case 2:
+            al_draw_bitmap(hearta,10,10,0);
+            al_draw_bitmap(hearta,30,10,0);
+            al_draw_bitmap(heartb,50,10,0);
+            break;
+        case 3:
+            al_draw_bitmap(hearta,10,10,0);
+            al_draw_bitmap(hearta,30,10,0);
+            al_draw_bitmap(hearta,50,10,0);
+            break;
+        }
+        switch(pessoa.key){
+        case 1:
+            al_draw_text(fontemenor,al_map_rgb(255,255,255),45,32,0,"1");
+            al_draw_bitmap(key,20,30,0);
+            break;
+        case 2:
+            al_draw_text(fontemenor,al_map_rgb(255,255,255),45,32,0,"2");
+            al_draw_bitmap(key,20,30,0);
+            break;
+        case 3:
+            al_draw_text(fontemenor,al_map_rgb(255,255,255),45,32,0,"3");
+            al_draw_bitmap(key,20,30,0);
+            break;
+        case 4:
+            al_draw_text(fontemenor,al_map_rgb(255,255,255),45,32,0,"4");
+            al_draw_bitmap(key,20,30,0);
+            break;
+        case 5:
+            al_draw_text(fontemenor,al_map_rgb(255,255,255),45,32,0,"5");
+            al_draw_bitmap(key,20,30,0);
+            break;
+        default:
+            al_draw_text(fontemenor,al_map_rgb(255,255,255),45,32,0,"0");
+            al_draw_bitmap(key,20,30,0);
+            break;
+        }
     }
     int min;
     int seg;
@@ -302,17 +335,24 @@ void defaultgamebg()
 }
 
 enum conn_ret_t tryConnect(bool *done){
-    int i = 0;
+    int i = 0, f = 0, g = 0;
     int enter = 0;
-    char server_ip[20]={ };
+    char server_ip[14]= "127.0.0.1";
     printf("Please enter the server IP: ");
     while (1)
     {
+        if (f == 0 && (menu.keyboard.keycode != ALLEGRO_KEY_ENTER || (menu.keyboard.keycode != ALLEGRO_KEY_PAD_ENTER)))
+        {
+            f = 1;
+            for (g = 0; g < 14; g++)
+                server_ip[g] == '\0';
+        }
         if(!al_is_event_queue_empty(filamenu)){
             if (*done != 1)
                 al_wait_for_event(filamenu, &menu);
             if(menu.type==ALLEGRO_EVENT_KEY_DOWN){
                         switch(menu.keyboard.keycode){
+                            case ALLEGRO_KEY_PAD_0:
                             case ALLEGRO_KEY_0:
                                 if (i < 20){
                                     server_ip[i] = '0';
@@ -320,6 +360,7 @@ enum conn_ret_t tryConnect(bool *done){
                                     i++;
                                 }
                                 break;
+                            case ALLEGRO_KEY_PAD_1:
                             case ALLEGRO_KEY_1:
                                 if (i < 20){
                                     server_ip[i] = '1';
@@ -327,6 +368,7 @@ enum conn_ret_t tryConnect(bool *done){
                                     i++;
                                 }
                                 break;
+                            case ALLEGRO_KEY_PAD_2:
                             case ALLEGRO_KEY_2:
                                 if (i < 20){
                                     server_ip[i] = '2';
@@ -334,6 +376,7 @@ enum conn_ret_t tryConnect(bool *done){
                                     i++;
                                 }
                                 break;
+                            case ALLEGRO_KEY_PAD_3:
                             case ALLEGRO_KEY_3:
                                 if (i < 20){
                                     server_ip[i] = '3';
@@ -341,6 +384,7 @@ enum conn_ret_t tryConnect(bool *done){
                                     i++;
                                 }
                                 break;
+                            case ALLEGRO_KEY_PAD_4:
                             case ALLEGRO_KEY_4:
                                 if (i < 20){
                                     server_ip[i] = '4';
@@ -348,6 +392,7 @@ enum conn_ret_t tryConnect(bool *done){
                                     i++;
                                 }
                                 break;
+                            case ALLEGRO_KEY_PAD_5:
                             case ALLEGRO_KEY_5:
                                 if (i < 20){
                                     server_ip[i] = '5';
@@ -355,6 +400,7 @@ enum conn_ret_t tryConnect(bool *done){
                                     i++;
                                 }
                                 break;
+                            case ALLEGRO_KEY_PAD_6:
                             case ALLEGRO_KEY_6:
                                 if (i < 20){
                                     server_ip[i] = '6';
@@ -362,6 +408,7 @@ enum conn_ret_t tryConnect(bool *done){
                                     i++;
                                 }
                                 break;
+                            case ALLEGRO_KEY_PAD_7:
                             case ALLEGRO_KEY_7:
                                 if (i < 20){
                                     server_ip[i] = '7';
@@ -369,6 +416,7 @@ enum conn_ret_t tryConnect(bool *done){
                                     i++;
                                 }
                                 break;
+                            case ALLEGRO_KEY_PAD_8:
                             case ALLEGRO_KEY_8:
                                 if (i < 20){
                                     server_ip[i] = '8';
@@ -376,6 +424,7 @@ enum conn_ret_t tryConnect(bool *done){
                                     i++;
                                 }
                                 break;
+                            case ALLEGRO_KEY_PAD_9:
                             case ALLEGRO_KEY_9:
                                 if (i < 20){
                                     server_ip[i] = '9';
@@ -383,6 +432,7 @@ enum conn_ret_t tryConnect(bool *done){
                                     i++;
                                 }
                                 break;
+                            case ALLEGRO_KEY_PAD_DELETE:
                             case ALLEGRO_KEY_FULLSTOP:
                                 if (i < 20){
                                     server_ip[i] = '.';
@@ -395,17 +445,13 @@ enum conn_ret_t tryConnect(bool *done){
                                 *done = true;
                                 return 0;
                             case ALLEGRO_KEY_BACKSPACE:
-                                if(i>0){
-                                    i--;
-                                }
-                                server_ip[i] = '\0';
-                                break;
                             case ALLEGRO_KEY_DELETE:
                                 if(i>0){
                                     i--;
                                 }
                                 server_ip[i] = '\0';
                                 break;
+                            case ALLEGRO_KEY_PAD_ENTER:
                             case ALLEGRO_KEY_ENTER:
                                 printf ("\nConnecting to %s...\n", server_ip);
                                 return connectToServer(server_ip);
@@ -816,7 +862,8 @@ int main(void)
 
                                 retorno = recvMsgFromServer(pessoa, WAIT_FOR_IT);
                                 if(retorno == SERVER_DISCONNECTED){
-                                    return -1;
+                                    cal_mass_destroy();
+                                    exit(EXIT_SUCCESS);
                                 }
 
                                 for(c1=0;c1<5;c1++){
@@ -952,7 +999,7 @@ int main(void)
                 }
                 al_flip_display();
             }
-
+        al_destroy_event_queue(filamenu);
         while(start && !done){
             ALLEGRO_EVENT ev;
             al_wait_for_event(fila, &ev);
@@ -965,7 +1012,114 @@ int main(void)
                 redraw=true;
                 retorno=recvMsgFromServer(pessoa,DONT_WAIT);
                 if(retorno==SERVER_DISCONNECTED){
-                    return -1;
+                    cal_mass_destroy();
+                    exit(1);
+                }
+                if(pessoa[meuId].vidas == 0){
+                    al_destroy_display(display);
+                    end = al_create_display(width*3,height*3);
+                    al_toggle_display_flag(end, ALLEGRO_NOFRAME, true);
+                    al_draw_bitmap(Defeat,0,0,0);
+                    al_flip_display();
+                    al_play_sample(sdefeat, 1.0, 0.0,1.0,ALLEGRO_PLAYMODE_ONCE,NULL);
+                    al_rest(2);
+                    al_destroy_display(end);
+                    menudisplay = al_create_display(w, h);
+                    al_toggle_display_flag(menudisplay, ALLEGRO_NOFRAME, false);
+                    al_set_window_title(menudisplay, "Dark Dwellers");
+                    start = 0;
+                    al_destroy_event_queue(fila);
+                    cal_init_event_queues();
+                    goto menustart; 
+                }
+                if(tjogo==0){
+                    al_destroy_display(display);
+                    end = al_create_display(width*3, height*3);
+                    al_toggle_display_flag(end, ALLEGRO_NOFRAME, true);
+                    if(pessoa[meuId].id == monstro){
+                        al_draw_bitmap(Win,0,0,0);
+                        al_flip_display();
+                        al_play_sample(svictory, 1.0, 0.0,1.0,ALLEGRO_PLAYMODE_ONCE,NULL);
+                    }
+                    else{
+                        al_draw_bitmap(Defeat,0,0,0);
+                        al_flip_display();
+                        al_play_sample(sdefeat, 1.0, 0.0,1.0,ALLEGRO_PLAYMODE_ONCE,NULL);
+                    }
+                    al_rest(2);
+                    al_destroy_display(end);
+                    menudisplay = al_create_display(w, h);
+                    al_toggle_display_flag(menudisplay, ALLEGRO_NOFRAME, false);
+                    al_set_window_title(menudisplay, "Dark Dwellers");
+                    start = 0;
+                    al_destroy_event_queue(fila);
+                    cal_init_event_queues();
+                    goto menustart;
+                }
+                if(pessoa[meuId].acabou==1){
+                    al_destroy_display(display);
+                    end = al_create_display(width*3, height*3);
+                    al_toggle_display_flag(end, ALLEGRO_NOFRAME, true);
+                    al_draw_bitmap(Win,0,0,0);
+                    al_flip_display();
+                    al_play_sample(svictory, 1.0, 0.0,1.0,ALLEGRO_PLAYMODE_ONCE,NULL);
+                    al_rest(2);
+                    al_destroy_display(end);
+                    menudisplay = al_create_display(w, h);
+                    al_toggle_display_flag(menudisplay, ALLEGRO_NOFRAME, false);
+                    al_set_window_title(menudisplay, "Dark Dwellers");
+                    start = 0;
+                    al_destroy_event_queue(fila);
+                    cal_init_event_queues();
+                    goto menustart;
+                }
+                if(pessoa[0].monstroloose==1){
+                    al_destroy_display(display);
+                    end = al_create_display(width*3,height*3);
+                    al_toggle_display_flag(end, ALLEGRO_NOFRAME, true);
+                    if(pessoa[meuId].id!=monstro){
+                        al_draw_bitmap(Win,0,0,0);
+                        al_flip_display();
+                        al_play_sample(svictory,1,0,1,ALLEGRO_PLAYMODE_ONCE,NULL);
+                    }
+                    else{
+                        al_draw_bitmap(Defeat,0,0,0);
+                        al_flip_display();
+                        al_play_sample(sdefeat,1,0,1,ALLEGRO_PLAYMODE_ONCE,NULL);
+                    }
+                    al_rest(1);
+                    al_destroy_display(end);
+                    menudisplay = al_create_display(w, h);
+                    al_toggle_display_flag(menudisplay, ALLEGRO_NOFRAME, false);
+                    al_set_window_title(menudisplay, "Dark Dwellers");
+                    start=0;
+                    al_destroy_event_queue(fila);
+                    cal_init_event_queues();
+                    goto menustart;
+                }
+                if(pessoa[0].monstrowin==1){
+                    al_destroy_display(display);
+                    end = al_create_display(width*3,height*3);
+                    al_toggle_display_flag(end, ALLEGRO_NOFRAME, true);
+                    if(pessoa[meuId].id==monstro){
+                        al_draw_bitmap(Win,0,0,0);
+                        al_flip_display();
+                        al_play_sample(svictory,1,0,1,ALLEGRO_PLAYMODE_ONCE,NULL);
+                    }
+                    else{
+                        al_draw_bitmap(Defeat,0,0,0);
+                        al_flip_display();
+                        al_play_sample(sdefeat,1,0,1,ALLEGRO_PLAYMODE_ONCE,NULL);
+                    }
+                    al_rest(1);
+                    al_destroy_display(end);
+                    menudisplay = al_create_display(w, h);
+                    al_toggle_display_flag(menudisplay, ALLEGRO_NOFRAME, false);
+                    al_set_window_title(menudisplay, "Dark Dwellers");
+                    start=0;
+                    al_destroy_event_queue(fila);
+                    cal_init_event_queues();
+                    goto menustart;
                 }
             }
             else if(ev.type==ALLEGRO_EVENT_KEY_DOWN){
@@ -987,10 +1141,12 @@ int main(void)
                         pessoa[meuId].lado=3;
                         break;
                     case ALLEGRO_KEY_ESCAPE:
-                        cal_mass_destroy();
                         pessoa[meuId].vivo=0;
                         done = true;
-                        exit(EXIT_SUCCESS);
+                        break;
+                    default:
+                        pessoa[meuId].tecla='8';
+                        break;
                 }
                 for(c1=0;c1<5;c1++){
                     life[c1]=pessoa[c1].vidas;
@@ -1024,7 +1180,7 @@ int main(void)
                     }
                 }
                 printStatus(pessoa[meuId]);
-                //al_play_sample(kill, 1.0, 0.0,1.0,ALLEGRO_PLAYMODE_ONCE,NULL);
+                printstatusm(pessoa);
                 al_flip_display();
                 if(pessoa[0].abriu == 1){
                     mapa = mapaOpenGate;
@@ -1033,92 +1189,6 @@ int main(void)
                     mapa = mapaClosedGate;
                 }
                 printTela(pessoa[meuId].plano);
-            }
-            if(pessoa[meuId].vidas == 0){
-                al_destroy_display(display);
-                end = al_create_display(width*3,height*3);
-                al_toggle_display_flag(end, ALLEGRO_NOFRAME, true);
-                al_draw_bitmap(Defeat,0,0,0);
-                al_flip_display();
-                al_play_sample(sdefeat, 1.0, 0.0,1.0,ALLEGRO_PLAYMODE_ONCE,NULL);
-                al_rest(2);
-                al_destroy_display(end);
-                menudisplay = al_create_display(w, h);
-                al_toggle_display_flag(menudisplay, ALLEGRO_NOFRAME, false);
-                al_set_window_title(menudisplay, "Dark Dwellers");
-                start = 0;
-                al_destroy_event_queue(filamenu);
-                al_destroy_event_queue(fila);
-                cal_init_event_queues();
-                goto menustart; 
-                }
-            if(tjogo==0){
-                al_destroy_display(display);
-                end = al_create_display(width*3, height*3);
-                al_toggle_display_flag(end, ALLEGRO_NOFRAME, true);
-                if(pessoa[meuId].id == monstro){
-                    al_draw_bitmap(Win,0,0,0);
-                    al_flip_display();
-                    al_play_sample(svictory, 1.0, 0.0,1.0,ALLEGRO_PLAYMODE_ONCE,NULL);
-                }
-                else{
-                    al_draw_bitmap(Defeat,0,0,0);
-                    al_flip_display();
-                    al_play_sample(sdefeat, 1.0, 0.0,1.0,ALLEGRO_PLAYMODE_ONCE,NULL);
-                }
-                al_rest(2);
-                al_destroy_display(end);
-                menudisplay = al_create_display(w, h);
-                al_toggle_display_flag(menudisplay, ALLEGRO_NOFRAME, false);
-                al_set_window_title(menudisplay, "Dark Dwellers");
-                start = 0;
-                al_destroy_event_queue(filamenu);
-                al_destroy_event_queue(fila);
-                cal_init_event_queues();
-                goto menustart;
-            }
-            if(pessoa[0].acabou==1){
-                al_destroy_display(display);
-                end = al_create_display(width*3, height*3);
-                al_toggle_display_flag(end, ALLEGRO_NOFRAME, true);
-                al_draw_bitmap(Win,0,0,0);
-                al_flip_display();
-                al_play_sample(svictory, 1.0, 0.0,1.0,ALLEGRO_PLAYMODE_ONCE,NULL);
-                al_rest(2);
-                al_destroy_display(end);
-                menudisplay = al_create_display(w, h);
-                al_toggle_display_flag(menudisplay, ALLEGRO_NOFRAME, false);
-                al_set_window_title(menudisplay, "Dark Dwellers");
-                start = 0;
-                al_destroy_event_queue(filamenu);
-                al_destroy_event_queue(fila);
-                cal_init_event_queues();
-                goto menustart;
-            }
-            if(pessoa[0].monstrowin==1){
-                al_destroy_display(display);
-                end = al_create_display(width*3,height*3);
-                al_toggle_display_flag(end, ALLEGRO_NOFRAME, true);
-                if(pessoa[meuId].id==monstro){
-                    al_draw_bitmap(Win,0,0,0);
-                    al_flip_display();
-                    al_play_sample(svictory,1,0,1,ALLEGRO_PLAYMODE_ONCE,NULL);
-                }
-                else{
-                    al_draw_bitmap(Defeat,0,0,0);
-                    al_flip_display();
-                    al_play_sample(sdefeat,1,0,1,ALLEGRO_PLAYMODE_ONCE,NULL);
-                }
-                al_rest(1);
-                al_destroy_display(end);
-                menudisplay = al_create_display(w, h);
-                al_toggle_display_flag(menudisplay, ALLEGRO_NOFRAME, false);
-                al_set_window_title(menudisplay, "Dark Dwellers");
-                start=0;
-                al_destroy_event_queue(filamenu);
-                al_destroy_event_queue(fila);
-                cal_init_event_queues();
-                goto menustart;
             }
         }
     }

@@ -7,7 +7,7 @@
 #define height 300
 #define tilesize 20
 #define mClientes 2
-#define monstro 1
+#define monstro 0
 int leCollision(int x,int y,int ex,int ey,int lado){//Funcao de coliso
     if(x+lado<ex||x>ex+lado||y+lado<ey||y>ey+lado){
         return 0;
@@ -34,6 +34,7 @@ typedef struct{
     int acabou;
     int abriu;
     int monstrowin;
+    int monstroloose;
 }jogador;
 void initPes(int num, jogador *pessoa){
     switch(num){
@@ -53,6 +54,7 @@ void initPes(int num, jogador *pessoa){
             pessoa->acabou=0;
             pessoa->abriu=0;
             pessoa->monstrowin=0;
+            pessoa->monstroloose=0;
             break;
         case 1:
             pessoa->vivo=1;
@@ -70,6 +72,7 @@ void initPes(int num, jogador *pessoa){
             pessoa->acabou=0;
             pessoa->abriu=0;
             pessoa->monstrowin=0;
+            pessoa->monstroloose=0;
             break;
         case 2:
             pessoa->vivo=1;
@@ -87,6 +90,7 @@ void initPes(int num, jogador *pessoa){
             pessoa->acabou=0;
             pessoa->abriu=0;
             pessoa->monstrowin=0;
+            pessoa->monstroloose=0;
             break;
         case 3:
             pessoa->vivo=1;
@@ -104,6 +108,7 @@ void initPes(int num, jogador *pessoa){
             pessoa->acabou=0;
             pessoa->monstrowin=0;
             pessoa->abriu=0;
+            pessoa->monstroloose=0;
             break;
         case 4://Monstro
             pessoa->vivo=1;
@@ -120,6 +125,7 @@ void initPes(int num, jogador *pessoa){
             pessoa->acabou=0;
             pessoa->abriu=0;
             pessoa->monstrowin=0;
+            pessoa->monstroloose=0;
             break;
     }
     return;
@@ -156,6 +162,15 @@ int tudovivo(jogador pessoa[5]){
     int i;
     for(i=0;i<5;i++){
         if(pessoa[i].id!=monstro&&pessoa[i].vidas!=0){
+            return 0;
+        }
+    }
+    return 1;
+}
+int todoMundoVivo(jogador pessoa[5]){
+    int i;
+    for(i=0;i<5;i++){
+        if(pessoa[i].id!=monstro&&pessoa[i].acabou==0){
             return 0;
         }
     }
@@ -327,7 +342,13 @@ int main(){
             else{
                 int i;
                 for(i=0;i<mClientes;i++){
+                    printf("%i %i %i %i\n",pessoa[novo.id].x,pessoa[novo.id].y,pessoa[i].x,pessoa[i].y);
+                    printf("colisao %i\n",leCollision(pessoa[novo.id].x,pessoa[novo.id].y,pessoa[i].x,pessoa[i].y,tilesize));
+                    printf("meu plano %i plano dela %i\n",pessoa[novo.id].plano,pessoa[i].plano);
+                    printf("vivo %i\n",pessoa[i].vivo);
+                    printf("%i %i\n",i,pessoa[novo.id].id);
                     if(leCollision(pessoa[novo.id].x,pessoa[novo.id].y,pessoa[i].x,pessoa[i].y,tilesize)==1&&pessoa[i].plano==pessoa[novo.id].plano&&i!=1&&pessoa[i].vivo==1&&i!=pessoa[novo.id].id){
+                        printf("BATI\n");
                         pessoa[i].x=pessoa[i].inicialx;
                         pessoa[i].y=pessoa[i].inicialy;
                         pessoa[i].plano=pessoa[i].planoi;
@@ -364,9 +385,11 @@ int main(){
                 pessoa[novo.id].vivo=0;
             }
             monstrowin=tudovivo(pessoa);
-            printf("%i\n",monstrowin);
             if(monstrowin==1){
                 pessoa[0].monstrowin=1;
+            }
+            if(todoMundoVivo(pessoa)==1){
+                pessoa[0].monstroloose=1;
             }
             broadcast(pessoa,mClientes*sizeof(jogador));
         }
