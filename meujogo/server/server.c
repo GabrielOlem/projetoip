@@ -155,7 +155,7 @@ chave initChaves(int i){
 int tudovivo(jogador pessoa[5]){
     int i;
     for(i=0;i<5;i++){
-        if(pessoa[i].vivo==1&&pessoa[i].id!=monstro&&pessoa[i].vidas!=0){
+        if(pessoa[i].id!=monstro&&pessoa[i].vidas!=0){
             return 0;
         }
     }
@@ -353,7 +353,7 @@ int main(){
                     }
                 }
             }
-            if(chavesT==5){
+            if(chavesT>=5){
                 pessoa[0].abriu=1;
             }
             else{
@@ -364,6 +364,7 @@ int main(){
                 pessoa[novo.id].vivo=0;
             }
             monstrowin=tudovivo(pessoa);
+            printf("%i\n",monstrowin);
             if(monstrowin==1){
                 pessoa[0].monstrowin=1;
             }

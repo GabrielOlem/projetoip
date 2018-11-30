@@ -15,7 +15,7 @@
 #define width 400
 #define height 300
 #define tilesize 20
-#define monstro 0
+#define monstro 1
 
 typedef struct{
     int x,y;
@@ -36,6 +36,7 @@ typedef struct{
     chave chaves[5];
     int acabou;
     int abriu;
+    int monstrowin;
 }jogador;
 /*
 lado 0 == frente
@@ -45,15 +46,15 @@ lado 3 == direita
 */
 enum KEYS{UP,DOWN,LEFT,RIGHT};
 const int fps=60;
-bool done=false;
-bool redraw=true;
-int tjogo=100; 
+bool done = false;
+bool redraw = true;
+int tjogo = 300; 
 
 ALLEGRO_DISPLAY *menudisplay = NULL;
-ALLEGRO_DISPLAY *display=NULL;
-ALLEGRO_DISPLAY *end=NULL;
-ALLEGRO_EVENT menu, menuhtp;
-ALLEGRO_EVENT_QUEUE *fila=NULL;
+ALLEGRO_DISPLAY *display = NULL;
+ALLEGRO_DISPLAY *end = NULL;
+ALLEGRO_EVENT menu;
+ALLEGRO_EVENT_QUEUE *fila = NULL, *filamenu = NULL;
 ALLEGRO_BITMAP *gbutton = NULL, *bbutton = NULL, *wa = NULL, *background = NULL;
 ALLEGRO_BITMAP *nfrente=NULL;
 ALLEGRO_BITMAP *ncosta=NULL;
@@ -68,14 +69,89 @@ ALLEGRO_BITMAP *key=NULL;
 ALLEGRO_BITMAP *Win=NULL;
 ALLEGRO_BITMAP *Defeat=NULL;
 ALLEGRO_BITMAP *mao=NULL;
+ALLEGRO_BITMAP *frontm = NULL, *frontp1 = NULL, *frontp2 = NULL, *frontp3 = NULL, *frontp4 = NULL;
 ALLEGRO_TIMER *timer=NULL;
-ALLEGRO_FONT *fonte=NULL;
-ALLEGRO_FONT *fontemenor=NULL;
-ALLEGRO_FONT *sansmenor=NULL;
+ALLEGRO_FONT *fonte=NULL, *fontemenor=NULL;
 ALLEGRO_AUDIO_STREAM *bg = NULL;
 ALLEGRO_SAMPLE *button = NULL;
-ALLEGRO_FONT *sans = NULL, *titlesans = NULL;
+ALLEGRO_SAMPLE *svictory = NULL, *sdefeat = NULL, *sdead = NULL, *skill = NULL;
+ALLEGRO_FONT *sans = NULL, *titlesans = NULL, *mediumsans = NULL, *sansmenor = NULL;;
 ALLEGRO_TIMEOUT timeout;
+
+void cal_import_bitmap (char *file, ALLEGRO_BITMAP **name)
+{
+   *name = al_load_bitmap(file);
+
+   if(!*name)
+    {
+      *name = al_load_bitmap("menu/error.png");
+      if(!*name)
+      {
+          al_destroy_display(menudisplay);
+          al_destroy_display(display);
+          al_destroy_display(end);
+          cal_destroy_audio();
+          printf("\n\nIMAGE ERROR!\n\n");
+          exit(1);
+      }
+    }
+}
+
+void cal_destroy_audio()
+{
+    al_destroy_sample(svictory);
+    al_destroy_sample(sdefeat);
+    al_destroy_sample(sdead);
+    al_destroy_sample(skill);
+    al_destroy_sample(button);
+    al_destroy_audio_stream(bg);
+}
+
+void cal_mass_destroy()
+{
+    al_destroy_bitmap(gbutton);
+    al_destroy_bitmap(bbutton);
+    al_destroy_bitmap(wa);
+    al_destroy_bitmap(background);
+    al_destroy_bitmap(mapa);
+    al_destroy_bitmap(mapaOpenGate);
+    al_destroy_bitmap(mapaClosedGate);
+    al_destroy_bitmap(hearta);
+    al_destroy_bitmap(heartb);
+    al_destroy_bitmap(key);
+    al_destroy_bitmap(Win);
+    al_destroy_bitmap(Defeat);
+    al_destroy_bitmap(mao);
+    al_destroy_font(sans);
+    al_destroy_font(titlesans);
+    al_destroy_font(sansmenor);
+    al_destroy_display(menudisplay);
+    al_destroy_display(display);
+    al_destroy_display(end);
+    cal_destroy_audio();
+}
+
+cal_init_event_queues()
+{
+    filamenu = al_create_event_queue();
+    if (!filamenu)
+    {
+        al_destroy_display(menudisplay);
+        exit(1);
+    }
+
+    fila = al_create_event_queue();
+    if (!fila)
+    {
+        al_destroy_display(menudisplay);
+        exit(1);
+    }
+
+    al_register_event_source(filamenu, al_get_mouse_event_source());
+    al_register_event_source(filamenu, al_get_keyboard_event_source());
+    al_register_event_source(fila, al_get_keyboard_event_source());
+    al_register_event_source(fila, al_get_timer_event_source(timer));
+}
 
 //Funcao para quando receber do server no inicio
 void printRec(jogador pessoa){
@@ -224,6 +300,7 @@ void defaultgamebg()
     al_clear_to_color(al_map_rgb(60, 60, 60));
     al_draw_bitmap_region (background, 0, 0, width, height, 0, 0, 0);
 }
+
 enum conn_ret_t tryConnect(bool *done){
     int i = 0;
     int enter = 0;
@@ -231,68 +308,106 @@ enum conn_ret_t tryConnect(bool *done){
     printf("Please enter the server IP: ");
     while (1)
     {
-        if(!al_is_event_queue_empty(fila)){
+        if(!al_is_event_queue_empty(filamenu)){
             if (*done != 1)
-                al_wait_for_event(fila, &menu);
+                al_wait_for_event(filamenu, &menu);
             if(menu.type==ALLEGRO_EVENT_KEY_DOWN){
                         switch(menu.keyboard.keycode){
                             case ALLEGRO_KEY_0:
-                                server_ip[i] = '0';
-                                i++;
+                                if (i < 20){
+                                    server_ip[i] = '0';
+                                    server_ip[i+1] = '\0';
+                                    i++;
+                                }
                                 break;
                             case ALLEGRO_KEY_1:
-                                server_ip[i] = '1';
-                                i++;
+                                if (i < 20){
+                                    server_ip[i] = '1';
+                                    server_ip[i+1] = '\0';
+                                    i++;
+                                }
                                 break;
                             case ALLEGRO_KEY_2:
-                                server_ip[i] = '2';
-                                i++;
+                                if (i < 20){
+                                    server_ip[i] = '2';
+                                    server_ip[i+1] = '\0';
+                                    i++;
+                                }
                                 break;
                             case ALLEGRO_KEY_3:
-                                server_ip[i] = '3';
-                                i++;
+                                if (i < 20){
+                                    server_ip[i] = '3';
+                                    server_ip[i+1] = '\0';
+                                    i++;
+                                }
                                 break;
                             case ALLEGRO_KEY_4:
-                                server_ip[i] = '4';
-                                i++;
+                                if (i < 20){
+                                    server_ip[i] = '4';
+                                    server_ip[i+1] = '\0';
+                                    i++;
+                                }
                                 break;
                             case ALLEGRO_KEY_5:
-                                server_ip[i] = '5';
-                                i++;
+                                if (i < 20){
+                                    server_ip[i] = '5';
+                                    server_ip[i+1] = '\0';
+                                    i++;
+                                }
                                 break;
                             case ALLEGRO_KEY_6:
-                                server_ip[i] = '6';
-                                i++;
+                                if (i < 20){
+                                    server_ip[i] = '6';
+                                    server_ip[i+1] = '\0';
+                                    i++;
+                                }
                                 break;
                             case ALLEGRO_KEY_7:
-                                server_ip[i] = '7';
-                                i++;
+                                if (i < 20){
+                                    server_ip[i] = '7';
+                                    server_ip[i+1] = '\0';
+                                    i++;
+                                }
                                 break;
                             case ALLEGRO_KEY_8:
-                                server_ip[i] = '8';
-                                i++;
+                                if (i < 20){
+                                    server_ip[i] = '8';
+                                    server_ip[i+1] = '\0';
+                                    i++;
+                                }
                                 break;
                             case ALLEGRO_KEY_9:
-                                server_ip[i] = '9';
-                                i++;
+                                if (i < 20){
+                                    server_ip[i] = '9';
+                                    server_ip[i+1] = '\0';
+                                    i++;
+                                }
                                 break;
                             case ALLEGRO_KEY_FULLSTOP:
-                                server_ip[i] = '.';
-                                i++;
+                                if (i < 20){
+                                    server_ip[i] = '.';
+                                    server_ip[i+1] = '\0';
+                                    i++;
+                                }
                                 break;
                             case ALLEGRO_KEY_ESCAPE:
-                                al_destroy_display(menudisplay);
-                                al_destroy_audio_stream(bg);
-                                al_destroy_sample(button);
+                                cal_mass_destroy();
                                 *done = true;
                                 return 0;
+                            case ALLEGRO_KEY_BACKSPACE:
+                                if(i>0){
+                                    i--;
+                                }
+                                server_ip[i] = '\0';
+                                break;
                             case ALLEGRO_KEY_DELETE:
                                 if(i>0){
                                     i--;
                                 }
-                                server_ip[i] = ' ';
+                                server_ip[i] = '\0';
                                 break;
                             case ALLEGRO_KEY_ENTER:
+                                printf ("\nConnecting to %s...\n", server_ip);
                                 return connectToServer(server_ip);
                             default: 
                                 break;
@@ -307,34 +422,35 @@ enum conn_ret_t tryConnect(bool *done){
         }
     }
 }
-void leConnection(bool *done){
+void leConnection(bool *done, int *repeat){
+    int denial = 0;
     enum conn_ret_t ans=tryConnect(done);
-    while (ans!=SERVER_UP){
+    while (ans!=SERVER_UP && denial == 0){
         if(ans==SERVER_DOWN){
             defaultgamebg();
-            al_draw_text(sansmenor, al_map_rgb(0, 0, 0), 200, 120, ALLEGRO_ALIGN_CENTER, "Server Down!");
+            al_draw_text(sansmenor, al_map_rgb(0, 0, 0), 200, 130, ALLEGRO_ALIGN_CENTER, "The server is down!");
             al_flip_display();
             puts("O server caiu!");
         }
         else if(ans==SERVER_FULL){
             defaultgamebg();
-            al_draw_text(sansmenor, al_map_rgb(0, 0, 0), 200, 120, ALLEGRO_ALIGN_CENTER, "Server is Full!");
+            al_draw_text(sansmenor, al_map_rgb(0, 0, 0), 200, 130, ALLEGRO_ALIGN_CENTER, "The server is full!");
             al_flip_display();
             puts("O server esta cheio!");
         }
         else if(ans==SERVER_CLOSED){
             defaultgamebg();
-            al_draw_text(sansmenor, al_map_rgb(0, 0, 0), 200, 120, ALLEGRO_ALIGN_CENTER, "Server is not available!");
+            al_draw_text(sansmenor, al_map_rgb(0, 0, 0), 200, 130, ALLEGRO_ALIGN_CENTER, "The server is not available!");
             al_flip_display();
             puts("O server esta fechado para novas conexoes");
         }
         al_rest(2);
         defaultgamebg();
-        al_draw_text(sansmenor, al_map_rgb(0, 0, 0), 200, 120, ALLEGRO_ALIGN_CENTER, "Would you like to try again?(y/n):");
+        al_draw_text(sansmenor, al_map_rgb(0, 0, 0), 200, 130, ALLEGRO_ALIGN_CENTER, "Would you like to try again?(Y/N):");
         al_flip_display();
         int res;
         do{
-            al_wait_for_event(fila,&menu);
+            al_wait_for_event(filamenu,&menu);
             if(menu.type==ALLEGRO_EVENT_KEY_DOWN){
                 switch(menu.keyboard.keycode){
                     case ALLEGRO_KEY_Y:
@@ -350,31 +466,16 @@ void leConnection(bool *done){
             }
         }while(res!='n'&&res!='y');
         if(res=='n'){
-            al_destroy_display(menudisplay);
-            exit(EXIT_SUCCESS);
+            (*repeat) = 1;
+            denial = 1;
         }
-        res='g';
-        ans=tryConnect(done);
+        else
+        {
+            res='g';
+            ans=tryConnect(done);
+        }
     }
 }
-void cal_import_bitmap (char *file, ALLEGRO_BITMAP **name)
-{
-   *name = al_load_bitmap(file);
-
-   if(!*name)
-    {
-      *name = al_load_bitmap("menu/error.png");
-      if(!*name)
-      {
-          al_destroy_display(menudisplay);
-          al_destroy_display(display);
-          al_destroy_display(end);
-          printf("\n\nIMAGE ERROR!\n\n");
-          exit(1);
-      }
-    }
-}
-
 
 int inicializar()
 {
@@ -407,7 +508,10 @@ int inicializar()
         exit(1);
     }
 
-    al_set_window_title(menudisplay, "Teste");
+    al_set_window_title(menudisplay, "Dark Dwellers");
+    al_set_new_display_flags(ALLEGRO_NOFRAME);
+    al_toggle_display_flag(menudisplay, ALLEGRO_NOFRAME, false);
+
     al_set_blender(ALLEGRO_ADD, ALLEGRO_ONE, ALLEGRO_INVERSE_ALPHA);
 
     al_init_font_addon();
@@ -419,7 +523,6 @@ int inicializar()
     }
 
     sans = al_load_font("Fonts/PixelOperator-Bold.ttf", 48, 0);
-    sansmenor=al_load_font("Fonts/PixelOperator-Bold.ttf",24,0);
 
     if (!sans)
     {
@@ -430,6 +533,22 @@ int inicializar()
     titlesans = al_load_font("Fonts/PixelOperator-Bold.ttf", 108, 0);
 
     if (!titlesans)
+    {
+        al_destroy_display(menudisplay);
+        exit(1);
+    }
+
+    sansmenor = al_load_font("Fonts/PixelOperator-Bold.ttf", 24, 0);
+
+    if (!sansmenor)
+    {
+        al_destroy_display(menudisplay);
+        exit(1);
+    }
+
+    mediumsans = al_load_font("Fonts/PixelOperator-Bold.ttf", 40, 0);
+
+    if (!mediumsans)
     {
         al_destroy_display(menudisplay);
         exit(1);
@@ -455,7 +574,12 @@ int inicializar()
     cal_import_bitmap("status/key.png", &key);
     cal_import_bitmap("Mapa/victory.png", &Win);
     cal_import_bitmap("Mapa/defeat.png", &Defeat);
-    cal_import_bitmap("status/mao.png",&mao);
+    cal_import_bitmap("status/mao.png", &mao);
+    cal_import_bitmap("Personagens/monstro/mfrente.png", &frontm);
+    cal_import_bitmap("Personagens/p1/p1frente.png", &frontp1);
+    cal_import_bitmap("Personagens/p2/p2frente.png", &frontp2);
+    cal_import_bitmap("Personagens/p3/p3frente.png", &frontp3);
+    cal_import_bitmap("Personagens/p4/p4frente.png", &frontp4);
 
     timer = al_create_timer(1.0/fps);
     if (!timer)
@@ -464,18 +588,7 @@ int inicializar()
         exit(1);
     }
 
-    fila = al_create_event_queue();
-    if (!fila)
-    {
-        al_destroy_display(menudisplay);
-        exit(1);
-    }
-
-    al_register_event_source(fila, al_get_mouse_event_source());
-    al_register_event_source(fila, al_get_keyboard_event_source());
-    al_register_event_source
-    (fila, al_get_display_event_source(menudisplay));
-    al_register_event_source(fila, al_get_timer_event_source(timer));
+    cal_init_event_queues();
 
     if(!al_install_audio())
     {
@@ -508,6 +621,39 @@ int inicializar()
     if (!button)
     {
         al_destroy_display(menudisplay);
+        cal_destroy_audio();
+        exit(1);
+    }
+
+    svictory = al_load_sample("Sounds/victory.wav");
+    if (!svictory)
+    {
+        al_destroy_display(menudisplay);
+        cal_destroy_audio();
+        exit(1);
+    }
+
+    sdefeat = al_load_sample("Sounds/defeat.wav");
+    if (!sdefeat)
+    {
+        al_destroy_display(menudisplay);
+        cal_destroy_audio();
+        exit(1);
+    }
+
+    sdead = al_load_sample("Sounds/dead.wav");
+    if (!sdead)
+    {
+        al_destroy_display(menudisplay);
+        cal_destroy_audio();
+        exit(1);
+    }
+
+    skill = al_load_sample("Sounds/kill.wav");
+    if (!skill)
+    {
+        al_destroy_display(menudisplay);
+        cal_destroy_audio();
         exit(1);
     }
 
@@ -517,12 +663,14 @@ int inicializar()
 }
 int main(void)
 {
+    int life[5]={0};
     int start=0,menuval=0;
     int hover[4]={0};
     int neox=0;
     int neoy=0;
     int c1,c2,c3;
     int aux = 0;
+    int repeat = 0;
 
     int colisoes[10][15][20];
     FILE **arq = NULL;
@@ -566,6 +714,9 @@ int main(void)
     if(!inicializar()){
         exit(EXIT_SUCCESS);
     }
+
+    menustart:
+    al_register_event_source(filamenu, al_get_display_event_source(menudisplay));
     defaultbg();
     while (!done){
         while (!start && !done)
@@ -592,11 +743,11 @@ int main(void)
                         al_draw_bitmap_region(gbutton, 0, 0, 500, 60, 350, 690, 0);
                     else
                         al_draw_bitmap_region(bbutton, 0, 0, 500, 60, 350, 690, 0);
-                    if(!al_is_event_queue_empty(fila))
+                    if(!al_is_event_queue_empty(filamenu))
                     {
-                        if (done != 1 || start != 1)
+                        if (!done || !start)
                         {
-                            al_wait_for_event(fila, &menu);
+                            al_wait_for_event(filamenu, &menu);
                         }
                         if (menu.type == ALLEGRO_EVENT_MOUSE_AXES)
                         {
@@ -638,12 +789,24 @@ int main(void)
 
                                 al_destroy_display(menudisplay);
                                 menudisplay = al_create_display(width, height);
+                                al_set_window_position(menudisplay, 633, 300);
+                                al_toggle_display_flag(menudisplay, ALLEGRO_NOFRAME, true);
 
                                 defaultgamebg();
                                 al_draw_text(sans, al_map_rgb(0, 0, 0), 200, 120, ALLEGRO_ALIGN_CENTER, "AWAITING IP...");
                                 al_flip_display();
 
-                                leConnection(&done);
+                                leConnection(&done, &repeat);
+                                if (repeat == 1)
+                                {
+                                    repeat = 0;
+                                    al_destroy_display(menudisplay);
+                                    menudisplay = al_create_display(w, h);
+                                    al_toggle_display_flag(menudisplay, ALLEGRO_NOFRAME, false);
+                                    al_set_window_title(menudisplay, "Dark Dwellers");
+                                    start = 0;
+                                    goto menustart; //ESSE GOTO VOLTA PARA O MENU, NO INÍCIO DO INT MAIN()
+                                }
                                 recvMsgFromServer(&meuId, WAIT_FOR_IT);
                                 printf("%i\n", meuId);
 
@@ -666,11 +829,11 @@ int main(void)
 
                                 al_destroy_display(menudisplay);
 
-                                al_set_new_display_flags(ALLEGRO_NOFRAME);
                                 display = al_create_display(width,height);
                                 if(!display){
                                     return -1;
                                 }
+                                al_toggle_display_flag(display, ALLEGRO_NOFRAME, true);
 
                                 printTela(pessoa[meuId].plano);
                                 leSkin(pessoa[meuId].id);
@@ -681,7 +844,7 @@ int main(void)
                             if (hover[1] == 1)
                             {
                                 menuval = 1; hover[1] = 0; hover[4] = 0; al_play_sample(button, 1.0, 0.0,1.0,ALLEGRO_PLAYMODE_ONCE,NULL);
-                                al_destroy_audio_stream(bg);
+                                al_drain_audio_stream(bg);
                             }
                             if (hover[2] == 1)
                             {
@@ -703,19 +866,30 @@ int main(void)
                 else if (menuval == 1)
                 {
                     defaultbg();
-                    al_draw_text(sans, al_map_rgb(0, 0, 0), 600, 120, ALLEGRO_ALIGN_CENTER, "YOU ARE GHOSTLY GHOST.");
-                    al_draw_text(sans, al_map_rgb(0, 0, 0), 600, 180, ALLEGRO_ALIGN_CENTER, "RUN FROM BLACK GHOST MAN.");
-                    al_draw_text(sans, al_map_rgb(0, 0, 0), 600, 240, ALLEGRO_ALIGN_CENTER, "DON'T DIE, THAT'S BAD FOR YOUR HEALTH.");
-                    al_draw_text(sans, al_map_rgb(27, 22, 89), 600, 300, ALLEGRO_ALIGN_CENTER, "HAVE A COMPLIMENTARY WALUIGI. WAAA.");
-                    al_draw_bitmap_region(wa, 0, 0, 240, 240, 480, 400, 0);
+                    al_draw_text(mediumsans, al_map_rgb(0, 0, 0), 600, 30, ALLEGRO_ALIGN_CENTER, "Como um fantasma, fuja do monstro e colete");
+                    al_draw_text(mediumsans, al_map_rgb(0, 0, 0), 600, 90, ALLEGRO_ALIGN_CENTER, "as chaves. Após coletivamente coletarem 5 de 6,");
+                    al_draw_text(mediumsans, al_map_rgb(0, 0, 0), 600, 150, ALLEGRO_ALIGN_CENTER, "o portão se abrirá no topo do mapa para fugirem.");
+                    al_draw_text(mediumsans, al_map_rgb(0, 0, 0), 600, 210, ALLEGRO_ALIGN_CENTER, "Todos tem 3 vidas, e quando perderem uma, perdem");
+                    al_draw_text(mediumsans, al_map_rgb(0, 0, 0), 600, 270, ALLEGRO_ALIGN_CENTER, "as chaves coletadas individualmente.");
+                    al_draw_text(mediumsans, al_map_rgb(0, 0, 0), 600, 350, ALLEGRO_ALIGN_CENTER, "Como o monstro, mate os fantasmas encostando neles.");
+                    al_draw_text(mediumsans, al_map_rgb(0, 0, 0), 600, 410, ALLEGRO_ALIGN_CENTER, "O monstro ganha se o tempo acabar ou se todos os");
+                    al_draw_text(mediumsans, al_map_rgb(0, 0, 0), 600, 470, ALLEGRO_ALIGN_CENTER, "fantasmas morrerem. Os fantasmas ganham se");
+                    al_draw_text(mediumsans, al_map_rgb(0, 0, 0), 600, 530, ALLEGRO_ALIGN_CENTER, "conseguirem fugir com sucesso.");
+                    al_draw_bitmap(frontm, 390, 620, 0);
+                    al_draw_bitmap(frontp1, 760, 600, 0);
+                    al_draw_bitmap(frontp2, 790, 600, 0);
+                    al_draw_bitmap(frontp3, 760, 640, 0);
+                    al_draw_bitmap(frontp4, 790, 640, 0);
+                    al_draw_text(sansmenor, al_map_rgb(0, 0, 0), 470, 616, ALLEGRO_ALIGN_CENTER, "< Monstro");
+                    al_draw_text(sansmenor, al_map_rgb(0, 0, 0), 680, 616, ALLEGRO_ALIGN_CENTER, "Fantasmas >");
                     if (hover[4] == 0)
                         al_draw_bitmap_region(gbutton, 0, 0, 500, 60, 350, 690, 0);
                     else
                         al_draw_bitmap_region(bbutton, 0, 0, 500, 60, 350, 690, 0);
-                    if(!al_is_event_queue_empty(fila))
+                    if(!al_is_event_queue_empty(filamenu))
                     {
                         if (done != 1 || start != 1)
-                            al_wait_for_event(fila, &menu);
+                            al_wait_for_event(filamenu, &menu);
                         if (menu.type == ALLEGRO_EVENT_MOUSE_AXES)
                         {
                             if (menu.mouse.x >= 350 && menu.mouse.x <= 850 && menu.mouse.y > 690 && menu.mouse.y <= 750)
@@ -741,15 +915,19 @@ int main(void)
                 else if (menuval == 2)
                 {
                     defaultbg();
-                    al_draw_text(sans, al_map_rgb(0, 0, 0), 600, 300, ALLEGRO_ALIGN_CENTER, "INSERT TEXT HERE");
+                    al_draw_text(titlesans, al_map_rgb(0, 0, 0), 600, 120, ALLEGRO_ALIGN_CENTER, "EQUIPE:");
+                    al_draw_text(sans, al_map_rgb(0, 0, 0), 600, 250, ALLEGRO_ALIGN_CENTER, "GABRIEL 'SONIKKU' FERREIRA ROCHA");
+                    al_draw_text(sans, al_map_rgb(0, 0, 0), 600, 310, ALLEGRO_ALIGN_CENTER, "LUCAS 'L' DOS REIS");
+                    al_draw_text(sans, al_map_rgb(0, 0, 0), 600, 370, ALLEGRO_ALIGN_CENTER, "GABRIEL MELO");
+                    al_draw_text(sans, al_map_rgb(0, 0, 0), 600, 430, ALLEGRO_ALIGN_CENTER, "ZECA");
                     if (hover[4] == 0)
                         al_draw_bitmap_region(gbutton, 0, 0, 500, 60, 350, 690, 0);
                     else
                         al_draw_bitmap_region(bbutton, 0, 0, 500, 60, 350, 690, 0);
-                    if(!al_is_event_queue_empty(fila))
+                    if(!al_is_event_queue_empty(filamenu))
                     {
                         if (done != 1 || start != 1)
-                            al_wait_for_event(fila, &menu);
+                            al_wait_for_event(filamenu, &menu);
                         if (menu.type == ALLEGRO_EVENT_MOUSE_AXES)
                         {
                             if (menu.mouse.x >= 350 && menu.mouse.x <= 850 && menu.mouse.y > 690 && menu.mouse.y <= 750)
@@ -777,7 +955,7 @@ int main(void)
 
         while(start && !done){
             ALLEGRO_EVENT ev;
-            al_wait_for_event(fila,&ev);
+            al_wait_for_event(fila, &ev);
             if(ev.type==ALLEGRO_EVENT_TIMER){
                 aux++;
                 if(aux==fps){
@@ -809,12 +987,13 @@ int main(void)
                         pessoa[meuId].lado=3;
                         break;
                     case ALLEGRO_KEY_ESCAPE:
-                        al_destroy_display(display);
-                        al_destroy_audio_stream(bg);
-                        al_destroy_sample(button);
+                        cal_mass_destroy();
                         pessoa[meuId].vivo=0;
                         done = true;
                         exit(EXIT_SUCCESS);
+                }
+                for(c1=0;c1<5;c1++){
+                    life[c1]=pessoa[c1].vidas;
                 }
                 sendMsgToServer(&pessoa[meuId],sizeof(jogador));
             }
@@ -831,7 +1010,21 @@ int main(void)
                     }
                 }
                 //se n�o estiver no meu plano eu n�o printo pq se n�o vai ficar todo mundo num plano s�
+                if(pessoa[meuId].vidas!=life[meuId]&&meuId!=monstro){
+                        life[meuId]=pessoa[meuId].vidas;
+                        al_play_sample(sdead, 1.0, 0.0,1.0,ALLEGRO_PLAYMODE_ONCE,NULL);
+                }
+                for(c1=0;c1<5;c1++){
+                    if(c1==monstro){
+                        c1++;
+                    }
+                    else if(pessoa[c1].vidas!=life[c1]&&meuId==monstro){
+                        life[c1]=pessoa[c1].vidas;
+                        al_play_sample(skill, 1.0, 0.0,1.0,ALLEGRO_PLAYMODE_ONCE,NULL);
+                    }
+                }
                 printStatus(pessoa[meuId]);
+                //al_play_sample(kill, 1.0, 0.0,1.0,ALLEGRO_PLAYMODE_ONCE,NULL);
                 al_flip_display();
                 if(pessoa[0].abriu == 1){
                     mapa = mapaOpenGate;
@@ -842,36 +1035,94 @@ int main(void)
                 printTela(pessoa[meuId].plano);
             }
             if(pessoa[meuId].vidas == 0){
-                    al_destroy_display(display);
-                    end = al_create_display(width*3,height*3);
-                    al_draw_bitmap(Defeat,0,0,0);
-                    al_flip_display();
-                    al_rest(3);
-                    al_destroy_display(end);
-                    done=true;
-                    exit(EXIT_SUCCESS);
+                al_destroy_display(display);
+                end = al_create_display(width*3,height*3);
+                al_toggle_display_flag(end, ALLEGRO_NOFRAME, true);
+                al_draw_bitmap(Defeat,0,0,0);
+                al_flip_display();
+                al_play_sample(sdefeat, 1.0, 0.0,1.0,ALLEGRO_PLAYMODE_ONCE,NULL);
+                al_rest(2);
+                al_destroy_display(end);
+                menudisplay = al_create_display(w, h);
+                al_toggle_display_flag(menudisplay, ALLEGRO_NOFRAME, false);
+                al_set_window_title(menudisplay, "Dark Dwellers");
+                start = 0;
+                al_destroy_event_queue(filamenu);
+                al_destroy_event_queue(fila);
+                cal_init_event_queues();
+                goto menustart; 
                 }
             if(tjogo==0){
                 al_destroy_display(display);
-                end = al_create_display(width*3,height*3);
+                end = al_create_display(width*3, height*3);
+                al_toggle_display_flag(end, ALLEGRO_NOFRAME, true);
                 if(pessoa[meuId].id == monstro){
                     al_draw_bitmap(Win,0,0,0);
+                    al_flip_display();
+                    al_play_sample(svictory, 1.0, 0.0,1.0,ALLEGRO_PLAYMODE_ONCE,NULL);
                 }
                 else{
                     al_draw_bitmap(Defeat,0,0,0);
+                    al_flip_display();
+                    al_play_sample(sdefeat, 1.0, 0.0,1.0,ALLEGRO_PLAYMODE_ONCE,NULL);
                 }
-                al_flip_display();
-                al_rest(3);
+                al_rest(2);
                 al_destroy_display(end);
-                done=true;
-                exit(EXIT_SUCCESS);
+                menudisplay = al_create_display(w, h);
+                al_toggle_display_flag(menudisplay, ALLEGRO_NOFRAME, false);
+                al_set_window_title(menudisplay, "Dark Dwellers");
+                start = 0;
+                al_destroy_event_queue(filamenu);
+                al_destroy_event_queue(fila);
+                cal_init_event_queues();
+                goto menustart;
+            }
+            if(pessoa[0].acabou==1){
+                al_destroy_display(display);
+                end = al_create_display(width*3, height*3);
+                al_toggle_display_flag(end, ALLEGRO_NOFRAME, true);
+                al_draw_bitmap(Win,0,0,0);
+                al_flip_display();
+                al_play_sample(svictory, 1.0, 0.0,1.0,ALLEGRO_PLAYMODE_ONCE,NULL);
+                al_rest(2);
+                al_destroy_display(end);
+                menudisplay = al_create_display(w, h);
+                al_toggle_display_flag(menudisplay, ALLEGRO_NOFRAME, false);
+                al_set_window_title(menudisplay, "Dark Dwellers");
+                start = 0;
+                al_destroy_event_queue(filamenu);
+                al_destroy_event_queue(fila);
+                cal_init_event_queues();
+                goto menustart;
+            }
+            if(pessoa[0].monstrowin==1){
+                al_destroy_display(display);
+                end = al_create_display(width*3,height*3);
+                al_toggle_display_flag(end, ALLEGRO_NOFRAME, true);
+                if(pessoa[meuId].id==monstro){
+                    al_draw_bitmap(Win,0,0,0);
+                    al_flip_display();
+                    al_play_sample(svictory,1,0,1,ALLEGRO_PLAYMODE_ONCE,NULL);
+                }
+                else{
+                    al_draw_bitmap(Defeat,0,0,0);
+                    al_flip_display();
+                    al_play_sample(sdefeat,1,0,1,ALLEGRO_PLAYMODE_ONCE,NULL);
+                }
+                al_rest(1);
+                al_destroy_display(end);
+                menudisplay = al_create_display(w, h);
+                al_toggle_display_flag(menudisplay, ALLEGRO_NOFRAME, false);
+                al_set_window_title(menudisplay, "Dark Dwellers");
+                start=0;
+                al_destroy_event_queue(filamenu);
+                al_destroy_event_queue(fila);
+                cal_init_event_queues();
+                goto menustart;
             }
         }
     }
-    al_destroy_display(menudisplay);
-    al_destroy_display(display);
-    al_destroy_display(end);
-    al_destroy_audio_stream(bg);
-    al_destroy_sample(button);
+    cal_mass_destroy();
+    exit(EXIT_SUCCESS);
     return 0;
 }
