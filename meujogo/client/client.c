@@ -769,7 +769,6 @@ int main(void)
     if(!inicializar()){
         exit(EXIT_SUCCESS);
     }
-
     menustart:
     al_register_event_source(filamenu, al_get_display_event_source(menudisplay));
     defaultbg();
@@ -1036,12 +1035,12 @@ int main(void)
                     al_destroy_event_queue(fila);
                     al_destroy_display(display);
                     al_rest(2);
+                    cal_init_event_queues();
                     al_destroy_display(end);
                     menudisplay = al_create_display(w, h);
                     al_toggle_display_flag(menudisplay, ALLEGRO_NOFRAME, false);
                     al_set_window_title(menudisplay, "Dark Dwellers");
                     start = 0;
-                    cal_init_event_queues();
                     goto menustart; 
                 }
                 if(tjogo==0){
@@ -1060,12 +1059,12 @@ int main(void)
                     al_destroy_event_queue(fila);
                     al_destroy_display(display);
                     al_rest(2);
+                    cal_init_event_queues();
                     al_destroy_display(end);
                     menudisplay = al_create_display(w, h);
                     al_toggle_display_flag(menudisplay, ALLEGRO_NOFRAME, false);
                     al_set_window_title(menudisplay, "Dark Dwellers");
                     start = 0;
-                    cal_init_event_queues();
                     goto menustart;
                 }
                 if(pessoa[meuId].acabou==1){
@@ -1077,12 +1076,12 @@ int main(void)
                     al_destroy_event_queue(fila);
                     al_destroy_display(display);
                     al_rest(2);
+                    cal_init_event_queues();
                     al_destroy_display(end);
                     menudisplay = al_create_display(w, h);
                     al_toggle_display_flag(menudisplay, ALLEGRO_NOFRAME, false);
                     al_set_window_title(menudisplay, "Dark Dwellers");
                     start = 0;
-                    cal_init_event_queues();
                     goto menustart;
                 }
                 if(pessoa[0].monstroloose==1){
@@ -1101,12 +1100,12 @@ int main(void)
                     al_destroy_event_queue(fila);
                     al_destroy_display(display);
                     al_rest(2);
+                    cal_init_event_queues();
                     al_destroy_display(end);
                     menudisplay = al_create_display(w, h);
                     al_toggle_display_flag(menudisplay, ALLEGRO_NOFRAME, false);
                     al_set_window_title(menudisplay, "Dark Dwellers");
                     start=0;
-                    cal_init_event_queues();
                     goto menustart;
                 }
                 if(pessoa[0].monstrowin==1){
@@ -1125,12 +1124,12 @@ int main(void)
                     al_destroy_event_queue(fila);
                     al_destroy_display(display);
                     al_rest(2);
+                    cal_init_event_queues();
                     al_destroy_display(end);
                     menudisplay = al_create_display(w, h);
                     al_toggle_display_flag(menudisplay, ALLEGRO_NOFRAME, false);
                     al_set_window_title(menudisplay, "Dark Dwellers");
-                    start=0; 
-                    cal_init_event_queues();
+                    start=0;
                     goto menustart;
                 }
             }
