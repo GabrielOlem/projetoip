@@ -1,4 +1,4 @@
-#include <allegro5/allegro.h>
+﻿#include <allegro5/allegro.h>
 #include <allegro5/allegro_font.h>
 #include <allegro5/allegro_image.h>
 #include <allegro5/allegro_ttf.h>
@@ -307,27 +307,27 @@ void printStatus(jogador pessoa){
     }
     switch(pessoa.key){
         case 1:
-            al_draw_text(fontemenor,al_map_rgb(255,255,255),45,32,0,"1");
+            al_draw_text(fontemenor,al_map_rgb(226,223,20),45,32,0,"1");
             al_draw_bitmap(key,20,30,0);
             break;
         case 2:
-            al_draw_text(fontemenor,al_map_rgb(255,255,255),45,32,0,"2");
+            al_draw_text(fontemenor,al_map_rgb(226,223,20),45,32,0,"2");
             al_draw_bitmap(key,20,30,0);
             break;
         case 3:
-            al_draw_text(fontemenor,al_map_rgb(255,255,255),45,32,0,"3");
+            al_draw_text(fontemenor,al_map_rgb(226,223,20),45,32,0,"3");
             al_draw_bitmap(key,20,30,0);
             break;
         case 4:
-            al_draw_text(fontemenor,al_map_rgb(255,255,255),45,32,0,"4");
+            al_draw_text(fontemenor,al_map_rgb(226,223,20),45,32,0,"4");
             al_draw_bitmap(key,20,30,0);
             break;
         case 5:
-            al_draw_text(fontemenor,al_map_rgb(255,255,255),45,32,0,"5");
+            al_draw_text(fontemenor,al_map_rgb(226,223,20),45,32,0,"5");
             al_draw_bitmap(key,20,30,0);
             break;
         default:
-            al_draw_text(fontemenor,al_map_rgb(255,255,255),45,32,0,"0");
+            al_draw_text(fontemenor,al_map_rgb(226,223,20),45,32,0,"0");
             al_draw_bitmap(key,20,30,0);
             break;
     }
