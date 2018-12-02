@@ -48,7 +48,7 @@ enum KEYS{UP,DOWN,LEFT,RIGHT};
 const int fps=60;
 bool done = false;
 bool redraw = true;
-int tjogo = 300;
+int tjogo = 150;
 
 ALLEGRO_DISPLAY *menudisplay = NULL;
 ALLEGRO_DISPLAY *display = NULL;
@@ -72,11 +72,11 @@ ALLEGRO_BITMAP *Defeat=NULL;
 ALLEGRO_BITMAP *mao=NULL;
 ALLEGRO_BITMAP *frontm = NULL, *frontp1 = NULL, *frontp2 = NULL, *frontp3 = NULL, *frontp4 = NULL;
 ALLEGRO_TIMER *timer=NULL;
-ALLEGRO_FONT *fonte=NULL, *fontemenor=NULL;
+ALLEGRO_FONT *fonte=NULL, *fontemenor=NULL, *fonteportao=NULL;
+ALLEGRO_FONT *sans = NULL, *titlesans = NULL, *mediumsans = NULL, *sansmenor = NULL;
 ALLEGRO_AUDIO_STREAM *bg = NULL, *gamesong = NULL;
 ALLEGRO_SAMPLE *button = NULL;
 ALLEGRO_SAMPLE *svictory = NULL, *sdefeat = NULL, *sdead = NULL, *skill = NULL;
-ALLEGRO_FONT *sans = NULL, *titlesans = NULL, *mediumsans = NULL, *sansmenor = NULL;;
 
 void cal_destroy_audio()
 {
@@ -622,6 +622,7 @@ int inicializar()
 
     fonte = al_load_font("Fonts/segment.otf",30,0);
     fontemenor = al_load_font("Fonts/segment.otf",20,0);
+    fonteportao = al_load_font("Fonts/scary.ttf",48,0);
     if (!fonte)
     {
         al_destroy_display(menudisplay);
@@ -742,17 +743,13 @@ int main(void)
     int life[5]={0};
     int start=0,menuval=0;
     int hover[4]={0};
-    int neox=0;
-    int neoy=0;
     int c1,c2,c3;
     int aux = 0;
     int temp=0;
     int repeat = 0;
-
     int colisoes[10][15][20];
     FILE **arq = NULL;
     char plano[15][20];
-    //Matriz
     arq=(FILE**)malloc(10*(sizeof(FILE *)));
     arq[0]=fopen("matrizes/plano1.txt","rt");
     arq[1]=fopen("matrizes/plano2.txt","rt");
@@ -787,11 +784,9 @@ int main(void)
     int meuId;
     int retorno;
     jogador *pessoa=(jogador*)malloc(5*sizeof(jogador));
-
     if(!inicializar()){
         exit(EXIT_SUCCESS);
     }
-
     menustart:
     al_register_event_source(filamenu, al_get_display_event_source(menudisplay));
     defaultbg();
@@ -998,11 +993,11 @@ int main(void)
                 {
                     defaultbg();
                     al_draw_text(titlesans, al_map_rgb(0, 0, 0), 600, 120, ALLEGRO_ALIGN_CENTER, "EQUIPE:");
-                    al_draw_text(sans, al_map_rgb(0, 0, 0), 600, 250, ALLEGRO_ALIGN_CENTER, "GABRIEL 'SONIKKU' FERREIRA ROCHA");
-                    al_draw_text(sans, al_map_rgb(0, 0, 0), 600, 310, ALLEGRO_ALIGN_CENTER, "LUCAS 'L' DOS REIS");
-                    al_draw_text(sans, al_map_rgb(0, 0, 0), 600, 370, ALLEGRO_ALIGN_CENTER, "GABRIEL 'GME' MELO");
-                    al_draw_text(sans, al_map_rgb(0, 0, 0), 600, 430, ALLEGRO_ALIGN_CENTER, "ZECA");
-                    al_draw_text(sans, al_map_rgb(0, 0, 0), 600, 490, ALLEGRO_ALIGN_CENTER, "FELIPE NUNES");
+                    al_draw_text(sans, al_map_rgb(0, 0, 0), 600, 250, ALLEGRO_ALIGN_CENTER, "FELIPE NUNES");//
+                    al_draw_text(sans, al_map_rgb(0, 0, 0), 600, 310, ALLEGRO_ALIGN_CENTER, "GABRIEL 'GME' DE MELO EVANGELISTA");
+                    al_draw_text(sans, al_map_rgb(0, 0, 0), 600, 370, ALLEGRO_ALIGN_CENTER, "GABRIEL 'SONIKKU' FERREIRA ROCHA");
+                    al_draw_text(sans, al_map_rgb(0, 0, 0), 600, 430, ALLEGRO_ALIGN_CENTER, "JOSE 'ZECA' CARLOS");
+                    al_draw_text(sans, al_map_rgb(0, 0, 0), 600, 490, ALLEGRO_ALIGN_CENTER, "LUCAS 'L' DOS REIS");
                     al_draw_text(sans, al_map_rgb(0, 0, 0), 600, 550, ALLEGRO_ALIGN_CENTER, "MARCELO VALOIS");
                     if (hover[4] == 0)
                         al_draw_bitmap_region(gbutton, 0, 0, 500, 60, 350, 690, 0);
@@ -1202,7 +1197,6 @@ int main(void)
                         al_draw_bitmap(key,pessoa[0].chaves[i].x,pessoa[0].chaves[i].y,0);
                     }
                 }
-                //se n�o estiver no meu plano eu n�o printo pq se n�o vai ficar todo mundo num plano s�
                 if(pessoa[meuId].vidas!=life[meuId]&&meuId!=monstro){
                         life[meuId]=pessoa[meuId].vidas;
                         al_play_sample(sdead, 1.0, 0.0,1.0,ALLEGRO_PLAYMODE_ONCE,NULL);
@@ -1234,7 +1228,7 @@ int main(void)
                     mapa = mapaClosedGate;
                 }
                 if(temp==1&&(teste-tjogo)<1){
-                    al_draw_text(sans,al_map_rgb(226,223,20),width/2,50,ALLEGRO_ALIGN_CENTRE,"PORTAO ABERTO");
+                    al_draw_text(fonteportao,al_map_rgb(226,223,20),width/2,50,ALLEGRO_ALIGN_CENTRE,"PORTAO ABERTO");
                 }
                 al_flip_display();
                 printTela(pessoa[meuId].plano);

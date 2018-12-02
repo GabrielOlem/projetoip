@@ -6,8 +6,8 @@
 #define width 400
 #define height 300
 #define tilesize 20
-#define mClientes 2
-#define monstro 0
+#define mClientes 5
+#define monstro 4
 int leCollision(int x,int y,int ex,int ey,int lado){//Funcao de coliso
     if(x+lado<ex||x>ex+lado||y+lado<ey||y>ey+lado){
         return 0;
@@ -226,10 +226,6 @@ int main(){
         }while(colisoes[pessoa[0].chaves[c1].plano][pessoa[0].chaves[c1].y][pessoa[0].chaves[c1].x]==1);
         pessoa[0].chaves[c1].x*=20;
         pessoa[0].chaves[c1].y*=20;
-        printf("%i %i %i\n",pessoa[0].chaves[c1].x,pessoa[0].chaves[c1].y,pessoa[0].chaves[c1].vivo);
-    }
-    for(c1=0;c1<5;c1++){
-        printf("Keys - %i %i %i %i\n",pessoa[0].chaves[c1].plano,pessoa[0].chaves[c1].x,pessoa[0].chaves[c1].y,pessoa[0].chaves[c1].vivo);
     }
     int nClients=0;
     serverInit(5);
