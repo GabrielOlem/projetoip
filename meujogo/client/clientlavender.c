@@ -75,6 +75,7 @@ ALLEGRO_TIMER *timer=NULL;
 ALLEGRO_FONT *fonte=NULL, *fontemenor=NULL, *fonteportao=NULL;
 ALLEGRO_FONT *sans = NULL, *titlesans = NULL, *mediumsans = NULL, *sansmenor = NULL;
 ALLEGRO_AUDIO_STREAM *bg = NULL, *gamesong = NULL;
+ALLEGRO_SAMPLE *portao = NULL;
 ALLEGRO_SAMPLE *button = NULL;
 ALLEGRO_SAMPLE *svictory = NULL, *sdefeat = NULL, *sdead = NULL, *skill = NULL;
 
@@ -735,7 +736,11 @@ int inicializar()
         cal_destroy_audio();
         exit(1);
     }
-
+    portao = al_load_sample("Sounds/portao.wav");
+    if(!portao){
+        al_destroy_display(menudisplay);
+        cal_destroy_audio();
+    }
     return 1;
 }
 int main(void)
@@ -1218,6 +1223,7 @@ int main(void)
                 }
                 if(pessoa[0].abriu == 1){
                     if(temp==0){
+                        al_play_sample(portao, 1.0, 0.0,1.0,ALLEGRO_PLAYMODE_ONCE,NULL);
                         teste=tjogo;
                     }
                     temp=1;
