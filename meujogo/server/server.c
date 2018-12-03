@@ -63,9 +63,9 @@ void initPes(int num, jogador *pessoa){
             pessoa->planoi=2;
             pessoa->lado=0;
             pessoa->id=1;
-            pessoa->x=300;
+            pessoa->x=280;
             pessoa->y=100;
-            pessoa->inicialx=300;
+            pessoa->inicialx=280;
             pessoa->inicialy=100;
             pessoa->key=0;
             pessoa->speed=10;
@@ -331,20 +331,13 @@ int main(){
                         pessoa[0].chaves[c1].vivo=0;
                         pessoa[novo.id].key++;
                         chavesT++;
-                        printf("%i\n",chavesT);
                     }
                 }
             }
             else{
                 int i;
                 for(i=0;i<mClientes;i++){
-                    printf("%i %i %i %i\n",pessoa[novo.id].x,pessoa[novo.id].y,pessoa[i].x,pessoa[i].y);
-                    printf("colisao %i\n",leCollision(pessoa[novo.id].x,pessoa[novo.id].y,pessoa[i].x,pessoa[i].y,tilesize));
-                    printf("meu plano %i plano dela %i\n",pessoa[novo.id].plano,pessoa[i].plano);
-                    printf("vivo %i\n",pessoa[i].vivo);
-                    printf("%i %i\n",i,pessoa[novo.id].id);
-                    if(leCollision(pessoa[novo.id].x,pessoa[novo.id].y,pessoa[i].x,pessoa[i].y,tilesize)==1&&pessoa[i].plano==pessoa[novo.id].plano&&i!=1&&pessoa[i].vivo==1&&i!=pessoa[novo.id].id){
-                        printf("BATI\n");
+                    if(leCollision(pessoa[novo.id].x,pessoa[novo.id].y,pessoa[i].x,pessoa[i].y,tilesize)==1&&pessoa[i].plano==pessoa[novo.id].plano&&i!=monstro&&pessoa[i].vivo==1){
                         pessoa[i].x=pessoa[i].inicialx;
                         pessoa[i].y=pessoa[i].inicialy;
                         pessoa[i].plano=pessoa[i].planoi;
@@ -363,6 +356,7 @@ int main(){
                             } 
                         }
                         chavesT-=pessoa[novo.id].key;
+                        printf("Chaves restantes %i\n",pessoa[novo.id].key);
                         pessoa[i].key=0;
                         if(pessoa[i].vidas==0){
                             pessoa[i].vivo=0;
@@ -370,7 +364,7 @@ int main(){
                     }
                 }
             }
-            if(chavesT>=5){
+            if(chavesT>=4){
                 pessoa[0].abriu=1;
             }
             else{

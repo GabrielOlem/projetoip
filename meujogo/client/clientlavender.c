@@ -48,7 +48,7 @@ enum KEYS{UP,DOWN,LEFT,RIGHT};
 const int fps=60;
 bool done = false;
 bool redraw = true;
-int tjogo = 150;
+int tjogo = 300;
 
 ALLEGRO_DISPLAY *menudisplay = NULL;
 ALLEGRO_DISPLAY *display = NULL;
@@ -165,7 +165,6 @@ void cal_init_event_queues()
     al_register_event_source(fila, al_get_keyboard_event_source());
     al_register_event_source(fila, al_get_timer_event_source(timer));
 }
-
 //Funcao para quando receber do server no inicio
 void printRec(jogador pessoa){
     switch(pessoa.lado){
@@ -253,7 +252,7 @@ void printStatusm(jogador pessoa[5]){
         if(pessoa[0].vidas==0){
             c2=0;
         }
-        if(pessoa[1].vidas==0){
+        if(pessoa[4].vidas==0){
             c3=0;
         }
         if(pessoa[2].vidas==0){
@@ -325,6 +324,10 @@ void printStatus(jogador pessoa){
             break;
         case 5:
             al_draw_text(fontemenor,al_map_rgb(226,223,20),45,32,0,"5");
+            al_draw_bitmap(key,20,30,0);
+            break;
+        case 6:
+            al_draw_textf(fontemenor,al_map_rgb(226,223,20),45,32,0,"6");
             al_draw_bitmap(key,20,30,0);
             break;
         default:
@@ -1233,7 +1236,7 @@ int main(void)
                     temp=0;
                     mapa = mapaClosedGate;
                 }
-                if(temp==1&&(teste-tjogo)<1){
+                if(temp==1&&(teste-tjogo)<2){
                     al_draw_text(fonteportao,al_map_rgb(226,223,20),width/2,50,ALLEGRO_ALIGN_CENTRE,"PORTAO ABERTO");
                 }
                 al_flip_display();
