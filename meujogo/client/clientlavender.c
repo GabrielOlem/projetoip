@@ -1,4 +1,13 @@
-﻿#include <allegro5/allegro.h>
+﻿/*
+GRUPO DARK DWELLERS
+-fnap - Felipe Nunes Almeida Pereira
+-gme - Gabriel de Melo Evangelista
+-gfr - Gabriel Ferreira Rocha
+-jcsf2 - Jose Carlos da Silva Filho
+-lrs5 - Lucas dos Reis Silva
+-mmv4 - Marcelo Menezes Valois
+*/
+#include <allegro5/allegro.h>
 #include <allegro5/allegro_font.h>
 #include <allegro5/allegro_image.h>
 #include <allegro5/allegro_ttf.h>
@@ -165,7 +174,6 @@ void cal_init_event_queues()
     al_register_event_source(fila, al_get_keyboard_event_source());
     al_register_event_source(fila, al_get_timer_event_source(timer));
 }
-//Funcao para quando receber do server no inicio
 void printRec(jogador pessoa){
     switch(pessoa.lado){
         case 0:
@@ -259,7 +267,7 @@ void printStatusm(jogador pessoa[5]){
         if(pessoa[0].vidas==0){
             c2=0;
         }
-        if(pessoa[4].vidas==0){
+        if(pessoa[1].vidas==0){
             c3=0;
         }
         if(pessoa[2].vidas==0){
@@ -369,7 +377,6 @@ enum conn_ret_t tryConnect(bool *done){
     int i = 0, f = 0, g = 0;
     int enter = 0;
     char server_ip[14]= "127.0.0.1";
-    printf("Please enter the server IP: ");
     while (1)
     {
         if (f == 0 && (menu.keyboard.keycode != ALLEGRO_KEY_ENTER || (menu.keyboard.keycode != ALLEGRO_KEY_PAD_ENTER)))
@@ -506,7 +513,6 @@ enum conn_ret_t tryConnect(bool *done){
                             case ALLEGRO_KEY_PAD_ENTER:
                             case ALLEGRO_KEY_ENTER:
                                 if(strcmp(server_ip,"acm")==0){
-                                    printf("entrou\n");
                                     if (acm == false)
                                         acm=true;
                                     else if (acm == true)
