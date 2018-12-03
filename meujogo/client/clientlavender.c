@@ -49,7 +49,7 @@ const int fps=60;
 bool done = false;
 bool redraw = true;
 int tjogo = 300;
-
+bool acm=false;
 ALLEGRO_DISPLAY *menudisplay = NULL;
 ALLEGRO_DISPLAY *display = NULL;
 ALLEGRO_DISPLAY *end = NULL;
@@ -239,10 +239,17 @@ void leSkin(int numero){
             nesquerda=al_load_bitmap("Personagens/p4/p4esquerda.png");
             break;
         case 4://Monstro
-            nfrente=al_load_bitmap("Personagens/monstro/mfrente.png");
+            if(acm){
+                nfrente=al_load_bitmap("Personagens/monstro/mfrente.png");
+                ndireita=al_load_bitmap("Personagens/monstro/mdireita.png");
+                nesquerda=al_load_bitmap("Personagens/monstro/mesquerda.png");
+            }
+            else{
+                nfrente=al_load_bitmap("Personagens/monstro/acmfrente.png");
+                ndireita=al_load_bitmap("Personagens/monstro/acmdireita.png");
+                nesquerda=al_load_bitmap("Personagens/monstro/acmesquerda.png");
+            }
             ncosta=al_load_bitmap("Personagens/monstro/mcostas.png");
-            ndireita=al_load_bitmap("Personagens/monstro/mdireita.png");
-            nesquerda=al_load_bitmap("Personagens/monstro/mesquerda.png");
             break;
     }
 }
@@ -475,10 +482,44 @@ enum conn_ret_t tryConnect(bool *done){
                                 }
                                 server_ip[i] = '\0';
                                 break;
+                            case ALLEGRO_KEY_A:
+                                if (i < 14){
+                                    server_ip[i] = 'a';
+                                    server_ip[i+1] = '\0';
+                                    i++;
+                                }
+                                break;
+                            case ALLEGRO_KEY_C:
+                                if (i < 14){
+                                    server_ip[i] = 'c';
+                                    server_ip[i+1] = '\0';
+                                    i++;
+                                }
+                                break;
+                            case ALLEGRO_KEY_M:
+                                if (i < 14){
+                                    server_ip[i] = 'm';
+                                    server_ip[i+1] = '\0';
+                                    i++;
+                                }
+                                break;
                             case ALLEGRO_KEY_PAD_ENTER:
                             case ALLEGRO_KEY_ENTER:
-                                printf ("\nConnecting to %s...\n", server_ip);
-                                return connectToServer(server_ip);
+                                if(strcmp(server_ip,"acm")==0){
+                                    printf("entrou\n");
+                                    if (acm == false)
+                                        acm=true;
+                                    else if (acm == true)
+                                        acm = false;
+                                    strcpy(server_ip,"");
+                                    printf("%i %s\n",acm,server_ip);
+                                    i=0;
+                                    break;
+                                }
+                                else{
+                                    printf ("\nConnecting to %s...\n", server_ip);
+                                    return connectToServer(server_ip);
+                                }
                             default:
                                 break;
                         }
